@@ -1,0 +1,15 @@
+services:
+  db:
+    image: postgres:18
+    container_name: LM_db
+    ports:
+      - "5432:5432"
+    environment:
+      POSTGRES_PASSWORD: postgres
+    # Optional: Uncomment to persist data beyond the life of the container
+    # volumes:
+    #   - my_dbdata:/var/lib/postgresql/data
+
+# Optional: Uncomment this section if you're using the volume
+# volumes:
+#   my_dbdata:

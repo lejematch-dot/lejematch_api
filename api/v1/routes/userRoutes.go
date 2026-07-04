@@ -1,0 +1,24 @@
+package routes
+
+import (
+	"Lejematch/api/auth"
+	listingHandler "Lejematch/api/v1/handlers/listings"
+	handler "Lejematch/api/v1/handlers/users"
+
+	"github.com/gofiber/fiber/v2"
+)
+
+func SetupUserRoutes(app fiber.Router) {
+	// This creates a subgroup for user creation that doesn't use the JWT middleware.
+	create := app.Group("/users")
+	create.Post("/", handler.CreateUser)
+	create.Get("/:id/profile", handler.GetProfile)
+	create.Get("/:id/listings", listingHandler.ListByUser)
+
+	api := app.Group("/users", auth.JWTmiddleware)
+	api.Delete("/:id", handler.DeleteUserAndProfile)
+	api.Get("/:id", handler.GetUser)
+	api.Patch("/:id", handler.UpdateUser)
+	api.Patch("/:id/profile", handler.UpdateProfile)
+	api.Put("/:id/password", handler.UpdatePassword)
+}
