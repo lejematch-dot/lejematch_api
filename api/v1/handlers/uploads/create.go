@@ -10,7 +10,7 @@ import (
 	"github.com/google/uuid"
 )
 
-const maxUploadSize = 50 * 1024 * 1024 // 50MB (midlertidigt hævet for at teste om filstørrelse er årsagen)
+const maxUploadSize = 15 * 1024 * 1024 // 15MB — moderne telefonkameraer producerer ofte billeder på 5-12MB
 
 // allowedExtensions bruges som fallback hvis browseren ikke sender en
 // genkendelig Content-Type. Filnavne fra telefoner (f.eks. iPhones
@@ -39,7 +39,7 @@ func CreateUpload(c *fiber.Ctx) error {
 	log.Printf("upload: received file=%q size=%d contentType=%q", file.Filename, file.Size, file.Header.Get("Content-Type"))
 
 	if file.Size > maxUploadSize {
-		return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{"error": "Filen er for stor (maks 50MB)"})
+		return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{"error": "Filen er for stor (maks 15MB)"})
 	}
 
 	contentType := strings.ToLower(strings.TrimSpace(file.Header.Get("Content-Type")))
