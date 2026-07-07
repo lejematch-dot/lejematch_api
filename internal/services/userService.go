@@ -6,6 +6,7 @@ import (
 	"Lejematch/internal/database/repo"
 	"Lejematch/internal/security"
 	"errors"
+	"log"
 	"strings"
 	"time"
 	"unicode"
@@ -153,8 +154,11 @@ func (s *userService) CreateUserWithProfile(req *CreateUserRequest) (*models.Use
 	}
 
 	// Send bekræftelses-mail. Fejl her må ikke fejle selve oprettelsen —
-	// brugeren kan altid bede om en ny via "resend-verification".
-	_ = sendVerificationEmail(user.ID, user.Email, user.FirstName)
+	// brugeren kan altid bede om en ny via "resend-verification" — men skal
+	// stadig logges, ellers er en fejlkonfigureret mailer usynlig.
+	if err := sendVerificationEmail(user.ID, user.Email, user.FirstName); err != nil {
+		log.Printf("failed to send verification email to %s: %v", user.Email, err)
+	}
 
 	return user, nil
 }

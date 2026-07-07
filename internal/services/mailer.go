@@ -23,6 +23,9 @@ func SendEmail(to, subject, html string) error {
 	}
 
 	mg := mailgun.NewMailgun(domain, apiKey)
+	// Domænet er oprettet i Mailguns EU-region (mxa/mxb.eu.mailgun.org) —
+	// uden dette rammer requests US-endpointet og fejler stille.
+	mg.SetAPIBase(mailgun.APIBaseEU)
 
 	sender := "LejeMatch <noreply@" + domain + ">"
 	message := mg.NewMessage(sender, subject, "", to)
