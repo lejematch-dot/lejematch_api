@@ -31,6 +31,5 @@ func GetProfile(c *fiber.Ctx) error {
 		"imageURL":    profile.ImageURL,
 		"age":         profile.Age,
 		"userType":    profile.UserType,
-		"facebookURL": profile.FacebookURL,
 	})
 }

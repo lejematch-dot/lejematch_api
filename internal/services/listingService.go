@@ -25,11 +25,11 @@ type CreateListingRequest struct {
 	SizeSqm             *int
 	Deposit             *int
 	RentalPeriod        string
+	RentalPeriodDetails string
 	LandlordType        string
 	FurnishedPreference string
 	Facilities          []string
 	TargetAudience      string
-	FacebookURL         string
 }
 
 type UpdateListingRequest struct {
@@ -49,11 +49,11 @@ type UpdateListingRequest struct {
 	SizeSqm             *int
 	Deposit             *int
 	RentalPeriod        *string
+	RentalPeriodDetails *string
 	LandlordType        *string
 	FurnishedPreference *string
 	Facilities          []string
 	TargetAudience      *string
-	FacebookURL         *string
 }
 
 type ListingService interface {
@@ -88,11 +88,11 @@ func (s *listingService) Create(userID uint, req *CreateListingRequest) (*models
 		SizeSqm:             req.SizeSqm,
 		Deposit:             req.Deposit,
 		RentalPeriod:        strings.TrimSpace(req.RentalPeriod),
+		RentalPeriodDetails: strings.TrimSpace(req.RentalPeriodDetails),
 		LandlordType:        strings.TrimSpace(req.LandlordType),
 		FurnishedPreference: strings.TrimSpace(req.FurnishedPreference),
 		Facilities:          req.Facilities,
 		TargetAudience:      strings.TrimSpace(req.TargetAudience),
-		FacebookURL:         strings.TrimSpace(req.FacebookURL),
 	}
 
 	if err := s.listingRepo.Create(listing); err != nil {
@@ -157,6 +157,9 @@ func (s *listingService) Update(listingID int, callerID uint, isAdmin bool, req 
 	if req.RentalPeriod != nil {
 		fields["rental_period"] = strings.TrimSpace(*req.RentalPeriod)
 	}
+	if req.RentalPeriodDetails != nil {
+		fields["rental_period_details"] = strings.TrimSpace(*req.RentalPeriodDetails)
+	}
 	if req.LandlordType != nil {
 		fields["landlord_type"] = strings.TrimSpace(*req.LandlordType)
 	}
@@ -169,10 +172,6 @@ func (s *listingService) Update(listingID int, callerID uint, isAdmin bool, req 
 	if req.TargetAudience != nil {
 		fields["target_audience"] = strings.TrimSpace(*req.TargetAudience)
 	}
-	if req.FacebookURL != nil {
-		fields["facebook_url"] = strings.TrimSpace(*req.FacebookURL)
-	}
-
 	if len(fields) == 0 {
 		return nil
 	}

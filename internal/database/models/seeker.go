@@ -24,5 +24,5 @@ type SeekerListing struct {
 	NumPeople           *int
 	FurnishedPreference string `gorm:"index"` // "furnished" | "unfurnished" | "any"
 	RentalPeriod        string `gorm:"index"` // ønsket lejeperiode: "unlimited" | "limited"
-	FacebookURL         string
+	RentalPeriodDetails string // fri tekst, kun relevant når RentalPeriod = "limited"
 }

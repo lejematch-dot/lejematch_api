@@ -15,7 +15,6 @@ type Profile struct {
 	Phone       string
 	Email       string
 
-	Age         *int
-	UserType    string `gorm:"not null;default:'tenant'"` // "tenant" | "landlord"
-	FacebookURL string
+	Age      *int
+	UserType string `gorm:"not null;default:'tenant'"` // "tenant" | "landlord"
 }

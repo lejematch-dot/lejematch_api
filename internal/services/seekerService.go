@@ -19,7 +19,7 @@ type CreateSeekerRequest struct {
 	NumPeople           *int
 	FurnishedPreference string
 	RentalPeriod        string
-	FacebookURL         string
+	RentalPeriodDetails string
 }
 
 type UpdateSeekerRequest struct {
@@ -36,7 +36,7 @@ type UpdateSeekerRequest struct {
 	NumPeople           *int
 	FurnishedPreference *string
 	RentalPeriod        *string
-	FacebookURL         *string
+	RentalPeriodDetails *string
 }
 
 type SeekerService interface {
@@ -69,7 +69,7 @@ func (s *seekerService) Create(userID uint, req *CreateSeekerRequest) (*models.S
 		NumPeople:           req.NumPeople,
 		FurnishedPreference: strings.TrimSpace(req.FurnishedPreference),
 		RentalPeriod:        strings.TrimSpace(req.RentalPeriod),
-		FacebookURL:         strings.TrimSpace(req.FacebookURL),
+		RentalPeriodDetails: strings.TrimSpace(req.RentalPeriodDetails),
 	}
 
 	if err := s.seekerRepo.Create(seeker); err != nil {
@@ -125,8 +125,8 @@ func (s *seekerService) Update(seekerID int, callerID uint, isAdmin bool, req *U
 	if req.RentalPeriod != nil {
 		fields["rental_period"] = strings.TrimSpace(*req.RentalPeriod)
 	}
-	if req.FacebookURL != nil {
-		fields["facebook_url"] = strings.TrimSpace(*req.FacebookURL)
+	if req.RentalPeriodDetails != nil {
+		fields["rental_period_details"] = strings.TrimSpace(*req.RentalPeriodDetails)
 	}
 
 	if len(fields) == 0 {

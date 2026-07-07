@@ -73,9 +73,9 @@ type Listing struct {
 	SizeSqm             *int
 	Deposit             *int
 	RentalPeriod        string      `gorm:"index"` // "unlimited" | "limited"
+	RentalPeriodDetails string      // fri tekst, kun relevant når RentalPeriod = "limited"
 	LandlordType        string      `gorm:"index"` // "boligselskab" | "privat"
 	FurnishedPreference string      `gorm:"index"` // "furnished" | "unfurnished" | "any"
 	Facilities          StringSlice `gorm:"type:jsonb"`
 	TargetAudience      string
-	FacebookURL         string
 }

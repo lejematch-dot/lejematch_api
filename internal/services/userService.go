@@ -33,9 +33,8 @@ type CreateUserRequest struct {
 	City      string
 	ImageURL  string
 
-	Age         *int
-	UserType    string
-	FacebookURL string
+	Age      *int
+	UserType string
 }
 
 type UpdatePasswordRequest struct {
@@ -57,7 +56,6 @@ type UpdateProfileRequest struct {
 	ImageURL    *string
 	Age         *int
 	UserType    *string
-	FacebookURL *string
 }
 
 type UserService interface {
@@ -144,7 +142,6 @@ func (s *userService) CreateUserWithProfile(req *CreateUserRequest) (*models.Use
 		Email:       req.Email,
 		Age:         req.Age,
 		UserType:    userType,
-		FacebookURL: strings.TrimSpace(req.FacebookURL),
 	}
 
 	// Save profile
@@ -246,9 +243,6 @@ func (s *userService) UpdateProfile(userID int, req *UpdateProfileRequest) error
 	}
 	if req.UserType != nil {
 		fields["user_type"] = strings.TrimSpace(*req.UserType)
-	}
-	if req.FacebookURL != nil {
-		fields["facebook_url"] = strings.TrimSpace(*req.FacebookURL)
 	}
 	if len(fields) == 0 {
 		return nil
