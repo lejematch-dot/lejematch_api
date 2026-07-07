@@ -19,7 +19,7 @@ func ResolveReport(c *fiber.Ctx) error {
 		return fiber.ErrBadRequest
 	}
 
-	reportService := services.NewReportService(repo.NewReportsRepo())
+	reportService := services.NewReportService(repo.NewReportsRepo(), repo.NewListingsRepo(), repo.NewSeekersRepo())
 	if err := reportService.Resolve(id); err != nil {
 		return fiber.ErrInternalServerError
 	}

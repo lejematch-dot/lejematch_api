@@ -8,6 +8,7 @@ import (
 )
 
 var ErrInvalidTargetType = errors.New("invalid target type")
+var ErrCannotReportSelf = errors.New("cannot report your own listing")
 
 type CreateReportRequest struct {
 	TargetType string
@@ -23,16 +24,29 @@ type ReportService interface {
 }
 
 type reportService struct {
-	reportRepo *repo.ReportsRepo
+	reportRepo  *repo.ReportsRepo
+	listingRepo *repo.ListingsRepo
+	seekerRepo  *repo.SeekersRepo
 }
 
-func NewReportService(reportRepo *repo.ReportsRepo) ReportService {
-	return &reportService{reportRepo: reportRepo}
+func NewReportService(reportRepo *repo.ReportsRepo, listingRepo *repo.ListingsRepo, seekerRepo *repo.SeekersRepo) ReportService {
+	return &reportService{reportRepo: reportRepo, listingRepo: listingRepo, seekerRepo: seekerRepo}
 }
 
 func (s *reportService) Create(reporterID uint, req *CreateReportRequest) (*models.Report, error) {
 	switch models.ReportTargetType(req.TargetType) {
-	case models.ReportTargetListing, models.ReportTargetSeeker, models.ReportTargetProfile:
+	case models.ReportTargetListing:
+		if listing, err := s.listingRepo.FindByID(int(req.TargetID)); err == nil && listing.UserID == reporterID {
+			return nil, ErrCannotReportSelf
+		}
+	case models.ReportTargetSeeker:
+		if seeker, err := s.seekerRepo.FindByID(int(req.TargetID)); err == nil && seeker.UserID == reporterID {
+			return nil, ErrCannotReportSelf
+		}
+	case models.ReportTargetProfile:
+		if req.TargetID == reporterID {
+			return nil, ErrCannotReportSelf
+		}
 	default:
 		return nil, ErrInvalidTargetType
 	}

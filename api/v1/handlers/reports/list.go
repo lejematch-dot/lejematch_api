@@ -13,7 +13,7 @@ func ListReports(c *fiber.Ctx) error {
 		return fiber.ErrForbidden
 	}
 
-	reportService := services.NewReportService(repo.NewReportsRepo())
+	reportService := services.NewReportService(repo.NewReportsRepo(), repo.NewListingsRepo(), repo.NewSeekersRepo())
 	list, err := reportService.List()
 	if err != nil {
 		return fiber.ErrInternalServerError

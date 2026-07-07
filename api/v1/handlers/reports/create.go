@@ -26,7 +26,7 @@ func CreateReport(c *fiber.Ctx) error {
 		return fiber.ErrBadRequest
 	}
 
-	reportService := services.NewReportService(repo.NewReportsRepo())
+	reportService := services.NewReportService(repo.NewReportsRepo(), repo.NewListingsRepo(), repo.NewSeekersRepo())
 	report, err := reportService.Create(caller.UserID, &services.CreateReportRequest{
 		TargetType: body.TargetType,
 		TargetID:   body.TargetID,
@@ -36,6 +36,9 @@ func CreateReport(c *fiber.Ctx) error {
 	if err != nil {
 		if errors.Is(err, services.ErrInvalidTargetType) {
 			return fiber.ErrBadRequest
+		}
+		if errors.Is(err, services.ErrCannotReportSelf) {
+			return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{"error": "Du kan ikke rapportere dit eget opslag"})
 		}
 		return fiber.ErrInternalServerError
 	}

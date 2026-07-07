@@ -45,6 +45,10 @@ func ContactListing(c *fiber.Ctx) error {
 		return fiber.ErrInternalServerError
 	}
 
+	if listing.UserID == caller.UserID {
+		return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{"error": "Du kan ikke kontakte dig selv"})
+	}
+
 	usersRepo := repo.NewUsersRepo()
 	udlejer, err := usersRepo.FindByID(int(listing.UserID))
 	if err != nil {
