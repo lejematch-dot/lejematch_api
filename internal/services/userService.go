@@ -97,7 +97,7 @@ func (s *userService) CreateUserWithProfile(req *CreateUserRequest) (*models.Use
 	// Clean input
 	req.FirstName = strings.TrimSpace(req.FirstName)
 	req.LastName = strings.TrimSpace(req.LastName)
-	req.Email = strings.TrimSpace(req.Email)
+	req.Email = strings.ToLower(strings.TrimSpace(req.Email))
 	req.Phone = strings.TrimSpace(req.Phone)
 	req.City = strings.TrimSpace(req.City)
 	req.ImageURL = strings.TrimSpace(req.ImageURL)
@@ -191,7 +191,7 @@ func (s *userService) UpdateUser(userID int, req *UpdateUserRequest) error {
 		fields["last_name"] = strings.TrimSpace(*req.LastName)
 	}
 	if req.Email != nil {
-		fields["email"] = strings.TrimSpace(*req.Email)
+		fields["email"] = strings.ToLower(strings.TrimSpace(*req.Email))
 	}
 	if req.Phone != nil {
 		fields["phone"] = strings.TrimSpace(*req.Phone)
