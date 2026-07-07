@@ -21,7 +21,7 @@ func Run() error {
 	app := fiber.New(fiber.Config{
 		AppName:      "Backend",
 		ServerHeader: "Lejematch/api/" + Version + " (Build " + Build + ")",
-		BodyLimit:    20 * 1024 * 1024, // 20MB — skal være over uploads.maxUploadSize (15MB) så vores egen fejlbesked kan nå at fyre først
+		BodyLimit:    30 * 1024 * 1024, // 30MB — skal være over uploads.maxUploadSize (25MB) så vores egen fejlbesked kan nå at fyre først
 
 	})
 
