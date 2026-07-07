@@ -78,4 +78,5 @@ type Listing struct {
 	FurnishedPreference string      `gorm:"index"` // "furnished" | "unfurnished" | "any"
 	Facilities          StringSlice `gorm:"type:jsonb"`
 	TargetAudience      string
+	RoommatesWanted     *int // antal nye roomies søgt, kun relevant når ListingKind = "room"
 }

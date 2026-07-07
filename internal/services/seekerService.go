@@ -17,6 +17,7 @@ type CreateSeekerRequest struct {
 
 	SeekingType         string
 	NumPeople           *int
+	NumRooms            *int
 	FurnishedPreference string
 	RentalPeriod        string
 	RentalPeriodDetails string
@@ -34,6 +35,7 @@ type UpdateSeekerRequest struct {
 
 	SeekingType         *string
 	NumPeople           *int
+	NumRooms            *int
 	FurnishedPreference *string
 	RentalPeriod        *string
 	RentalPeriodDetails *string
@@ -67,6 +69,7 @@ func (s *seekerService) Create(userID uint, req *CreateSeekerRequest) (*models.S
 
 		SeekingType:         strings.TrimSpace(req.SeekingType),
 		NumPeople:           req.NumPeople,
+		NumRooms:            req.NumRooms,
 		FurnishedPreference: strings.TrimSpace(req.FurnishedPreference),
 		RentalPeriod:        strings.TrimSpace(req.RentalPeriod),
 		RentalPeriodDetails: strings.TrimSpace(req.RentalPeriodDetails),
@@ -118,6 +121,9 @@ func (s *seekerService) Update(seekerID int, callerID uint, isAdmin bool, req *U
 	}
 	if req.NumPeople != nil {
 		fields["num_people"] = req.NumPeople
+	}
+	if req.NumRooms != nil {
+		fields["num_rooms"] = req.NumRooms
 	}
 	if req.FurnishedPreference != nil {
 		fields["furnished_preference"] = strings.TrimSpace(*req.FurnishedPreference)

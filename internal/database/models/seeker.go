@@ -20,8 +20,9 @@ type SeekerListing struct {
 	MoveInFrom  string        // ISO date string, f.eks. "2024-08-01"
 	Images      StringSlice   `gorm:"type:jsonb"` // profilbilleder
 
-	SeekingType         string // "bolig" | "roommate"
+	SeekingType         string // "bolig" | "roommate" | "begge"
 	NumPeople           *int
+	NumRooms            *int   // antal værelser søgt, kun relevant når SeekingType er "roommate" eller "begge"
 	FurnishedPreference string `gorm:"index"` // "furnished" | "unfurnished" | "any"
 	RentalPeriod        string `gorm:"index"` // ønsket lejeperiode: "unlimited" | "limited"
 	RentalPeriodDetails string // fri tekst, kun relevant når RentalPeriod = "limited"

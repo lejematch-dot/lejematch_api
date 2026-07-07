@@ -30,6 +30,7 @@ type CreateListingRequest struct {
 	FurnishedPreference string
 	Facilities          []string
 	TargetAudience      string
+	RoommatesWanted     *int
 }
 
 type UpdateListingRequest struct {
@@ -54,6 +55,7 @@ type UpdateListingRequest struct {
 	FurnishedPreference *string
 	Facilities          []string
 	TargetAudience      *string
+	RoommatesWanted     *int
 }
 
 type ListingService interface {
@@ -93,6 +95,7 @@ func (s *listingService) Create(userID uint, req *CreateListingRequest) (*models
 		FurnishedPreference: strings.TrimSpace(req.FurnishedPreference),
 		Facilities:          req.Facilities,
 		TargetAudience:      strings.TrimSpace(req.TargetAudience),
+		RoommatesWanted:     req.RoommatesWanted,
 	}
 
 	if err := s.listingRepo.Create(listing); err != nil {
@@ -171,6 +174,9 @@ func (s *listingService) Update(listingID int, callerID uint, isAdmin bool, req 
 	}
 	if req.TargetAudience != nil {
 		fields["target_audience"] = strings.TrimSpace(*req.TargetAudience)
+	}
+	if req.RoommatesWanted != nil {
+		fields["roommates_wanted"] = req.RoommatesWanted
 	}
 	if len(fields) == 0 {
 		return nil

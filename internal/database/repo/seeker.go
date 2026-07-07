@@ -47,9 +47,9 @@ func (r *SeekersRepo) FindFiltered(f SeekerFilters) ([]*models.SeekerListing, in
 		query = query.Where("rental_period IN ?", f.RentalPeriod)
 	}
 	if f.Category == "vaerelse" {
-		query = query.Where("seeking_type = ?", "roommate")
+		query = query.Where("seeking_type IN ?", []string{"roommate", "begge"})
 	} else if f.Category == "hele" {
-		query = query.Where("seeking_type <> ?", "roommate")
+		query = query.Where("seeking_type IN ?", []string{"bolig", "begge"})
 	}
 
 	var total int64
@@ -75,9 +75,9 @@ func (r *SeekersRepo) FindByUserID(userID uint) ([]*models.SeekerListing, error)
 func (r *SeekersRepo) DistinctCities(category string) ([]string, error) {
 	query := r.db.Model(&models.SeekerListing{}).Where("status = ?", models.ListingStatusActive)
 	if category == "vaerelse" {
-		query = query.Where("seeking_type = ?", "roommate")
+		query = query.Where("seeking_type IN ?", []string{"roommate", "begge"})
 	} else if category == "hele" {
-		query = query.Where("seeking_type <> ?", "roommate")
+		query = query.Where("seeking_type IN ?", []string{"bolig", "begge"})
 	}
 
 	var cities []string
