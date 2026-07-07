@@ -1,6 +1,7 @@
 package uploads
 
 import (
+	"log"
 	"os"
 	"path/filepath"
 	"strings"
@@ -32,8 +33,10 @@ var contentTypeExtensions = map[string]string{
 func CreateUpload(c *fiber.Ctx) error {
 	file, err := c.FormFile("file")
 	if err != nil {
+		log.Printf("upload: FormFile error: %v", err)
 		return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{"error": "Ingen fil modtaget"})
 	}
+	log.Printf("upload: received file=%q size=%d contentType=%q", file.Filename, file.Size, file.Header.Get("Content-Type"))
 
 	if file.Size > maxUploadSize {
 		return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{"error": "Filen er for stor (maks 5MB)"})
@@ -54,11 +57,13 @@ func CreateUpload(c *fiber.Ctx) error {
 	}
 
 	if err := os.MkdirAll("./uploads", 0755); err != nil {
+		log.Printf("upload: MkdirAll error: %v", err)
 		return fiber.ErrInternalServerError
 	}
 
 	filename := uuid.NewString() + ext
 	if err := c.SaveFile(file, filepath.Join("./uploads", filename)); err != nil {
+		log.Printf("upload: SaveFile error for %q: %v", file.Filename, err)
 		return fiber.ErrInternalServerError
 	}
 
