@@ -1,3 +1,8 @@
 #Ignore .idea folder
 .idea/
 *.envenv
+env
+
+# Uploaded user images (local dev/single-server storage — see docker-compose.yml)
+/uploads
+.DS_Store

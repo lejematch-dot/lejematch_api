@@ -81,3 +81,56 @@ func GetPayloadFromJWT(tokenString string) (*JWTPayload, error) {
 		ExpiresAt: int64(exp),
 	}, nil
 }
+
+// GenerateActionToken laver et kortlivet, formålsbundet token (e-mail-bekræftelse,
+// nulstil adgangskode) ved at genbruge den eksisterende JWT-infrastruktur —
+// ingen separat token-tabel nødvendig.
+func GenerateActionToken(userID uint, purpose string, ttl time.Duration) (string, error) {
+	secret := os.Getenv("JWT_SECRET")
+	if secret == "" {
+		return "", errors.New("JWT_SECRET is not set")
+	}
+
+	now := time.Now().UTC()
+	claims := jwt.MapClaims{
+		"sub":     userID,
+		"purpose": purpose,
+		"iat":     now.Unix(),
+		"exp":     now.Add(ttl).Unix(),
+	}
+
+	token := jwt.NewWithClaims(jwt.SigningMethodHS256, claims)
+	return token.SignedString([]byte(secret))
+}
+
+// ParseActionToken verificerer et token lavet af GenerateActionToken og
+// tjekker at det har det forventede formål.
+func ParseActionToken(tokenString, expectedPurpose string) (uint, error) {
+	secret := os.Getenv("JWT_SECRET")
+	if secret == "" {
+		return 0, errors.New("JWT_SECRET is not set")
+	}
+
+	token, err := jwt.Parse(tokenString, func(token *jwt.Token) (interface{}, error) {
+		if _, ok := token.Method.(*jwt.SigningMethodHMAC); !ok {
+			return nil, errors.New("unexpected signing method")
+		}
+		return []byte(secret), nil
+	})
+	if err != nil {
+		return 0, err
+	}
+
+	claims, ok := token.Claims.(jwt.MapClaims)
+	if !ok || !token.Valid {
+		return 0, errors.New("invalid token")
+	}
+
+	purpose, ok1 := claims["purpose"].(string)
+	sub, ok2 := claims["sub"].(float64)
+	if !ok1 || !ok2 || purpose != expectedPurpose {
+		return 0, errors.New("invalid token claims")
+	}
+
+	return uint(sub), nil
+}

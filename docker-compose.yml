@@ -10,6 +10,23 @@ services:
     # volumes:
     #   - my_dbdata:/var/lib/postgresql/data
 
+  api:
+    build: .
+    container_name: LM_api
+    ports:
+      - "8080:8080"
+    env_file:
+      - env
+    environment:
+      DATABASE_URL: host=db user=postgres password=postgres dbname=postgres port=5432 sslmode=disable
+    depends_on:
+      - db
+    volumes:
+      # Persist uploaded images across container restarts/redeploys on this host.
+      # NOTE: only survives on a single server — moving to another host or scaling
+      # to multiple instances still loses these files. Switch to S3/R2 for that.
+      - ./uploads:/app/uploads
+
 # Optional: Uncomment this section if you're using the volume
 # volumes:
 #   my_dbdata:

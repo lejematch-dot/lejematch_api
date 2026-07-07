@@ -35,6 +35,13 @@ func Login(c *fiber.Ctx) error {
 		return c.Status(fiber.StatusUnauthorized).JSON(fiber.Map{"error": "Invalid email or password"})
 	}
 
+	if !user.IsActive {
+		return c.Status(fiber.StatusForbidden).JSON(fiber.Map{
+			"error": "Bekræft din e-mail før du kan logge ind",
+			"code":  "email_not_verified",
+		})
+	}
+
 	//Generate JWT
 	jwt, err := services.GenerateJWT(*user)
 	if err != nil {

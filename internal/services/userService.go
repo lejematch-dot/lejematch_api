@@ -1,13 +1,17 @@
 package services
 
 import (
+	"Lejematch/config"
 	"Lejematch/internal/database/models"
 	"Lejematch/internal/database/repo"
 	"Lejematch/internal/security"
 	"errors"
 	"strings"
+	"time"
 	"unicode"
 )
+
+const emailVerificationTTL = 1 * time.Hour
 
 // isDuplicateKeyError detects PostgreSQL unique constraint violations (code 23505).
 func isDuplicateKeyError(err error) bool {
@@ -27,6 +31,10 @@ type CreateUserRequest struct {
 	Password  string
 	City      string
 	ImageURL  string
+
+	Age         *int
+	UserType    string
+	FacebookURL string
 }
 
 type UpdatePasswordRequest struct {
@@ -46,6 +54,9 @@ type UpdateProfileRequest struct {
 	Bio         *string
 	City        *string
 	ImageURL    *string
+	Age         *int
+	UserType    *string
+	FacebookURL *string
 }
 
 type UserService interface {
@@ -98,7 +109,7 @@ func (s *userService) CreateUserWithProfile(req *CreateUserRequest) (*models.Use
 		return nil, err
 	}
 
-	// Create user
+	// Create user — inaktiv indtil e-mailen er bekræftet
 	user := &models.User{
 		FirstName: req.FirstName,
 		LastName:  req.LastName,
@@ -106,7 +117,7 @@ func (s *userService) CreateUserWithProfile(req *CreateUserRequest) (*models.Use
 		Phone:     req.Phone,
 		Password:  hashedPassword,
 		IsAdmin:   false,
-		IsActive:  true,
+		IsActive:  false,
 	}
 
 	// Save user
@@ -117,6 +128,11 @@ func (s *userService) CreateUserWithProfile(req *CreateUserRequest) (*models.Use
 
 	displayName := titleCase(req.FirstName + " " + req.LastName)
 
+	userType := strings.TrimSpace(req.UserType)
+	if userType == "" {
+		userType = "tenant"
+	}
+
 	// Create profile linked to user
 	profile := &models.Profile{
 		UserID:      user.ID,
@@ -125,6 +141,9 @@ func (s *userService) CreateUserWithProfile(req *CreateUserRequest) (*models.Use
 		ImageURL:    req.ImageURL,
 		Phone:       req.Phone,
 		Email:       req.Email,
+		Age:         req.Age,
+		UserType:    userType,
+		FacebookURL: strings.TrimSpace(req.FacebookURL),
 	}
 
 	// Save profile
@@ -133,7 +152,33 @@ func (s *userService) CreateUserWithProfile(req *CreateUserRequest) (*models.Use
 		return nil, err
 	}
 
+	// Send bekræftelses-mail. Fejl her må ikke fejle selve oprettelsen —
+	// brugeren kan altid bede om en ny via "resend-verification".
+	_ = sendVerificationEmail(user.ID, user.Email, user.FirstName)
+
 	return user, nil
+}
+
+// sendVerificationEmail sender et bekræftelseslink til den nyoprettede bruger.
+func sendVerificationEmail(userID uint, email, firstName string) error {
+	token, err := GenerateActionToken(userID, "verify_email", emailVerificationTTL)
+	if err != nil {
+		return err
+	}
+
+	link := config.AppConfigInstance.FrontendURL + "/bekraeft-email/" + token
+	subject := "Bekræft din e-mail hos LejeMatch"
+	html := `
+	<html>
+		<body style="font-family: Arial, sans-serif; line-height: 1.6; color: #333;">
+			<h2>Velkommen til LejeMatch, ` + firstName + `!</h2>
+			<p>Klik på linket for at bekræfte din e-mail og aktivere din konto:</p>
+			<p><a href="` + link + `">Bekræft din e-mail</a></p>
+			<p style="color: #666; font-size: 12px;">Linket udløber om 1 time.</p>
+		</body>
+	</html>
+	`
+	return SendEmail(email, subject, html)
 }
 
 func (s *userService) UpdateUser(userID int, req *UpdateUserRequest) error {
@@ -191,6 +236,15 @@ func (s *userService) UpdateProfile(userID int, req *UpdateProfileRequest) error
 	}
 	if req.ImageURL != nil {
 		fields["image_url"] = strings.TrimSpace(*req.ImageURL)
+	}
+	if req.Age != nil {
+		fields["age"] = req.Age
+	}
+	if req.UserType != nil {
+		fields["user_type"] = strings.TrimSpace(*req.UserType)
+	}
+	if req.FacebookURL != nil {
+		fields["facebook_url"] = strings.TrimSpace(*req.FacebookURL)
 	}
 	if len(fields) == 0 {
 		return nil

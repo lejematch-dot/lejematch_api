@@ -7,10 +7,13 @@ import (
 )
 
 type AppConfig struct {
-	Environment string
-	APIPort     string
-	DatabaseURL string
-	JWTSecret   string
+	Environment   string
+	APIPort       string
+	DatabaseURL   string
+	JWTSecret     string
+	FrontendURL   string
+	MailgunAPIKey string
+	MailgunDomain string
 }
 
 var AppConfigInstance AppConfig
@@ -23,10 +26,13 @@ func Load() {
 	_ = godotenv.Load(envFile)
 
 	AppConfigInstance = AppConfig{
-		Environment: GetEnv("ENV", "development"),
-		APIPort:     GetEnv("API_PORT", "8080"),
-		DatabaseURL: GetEnv("DATABASE_URL", ""),
-		JWTSecret:   GetEnv("JWT_SECRET", ""),
+		Environment:   GetEnv("ENV", "development"),
+		APIPort:       GetEnv("API_PORT", "8080"),
+		DatabaseURL:   GetEnv("DATABASE_URL", ""),
+		JWTSecret:     GetEnv("JWT_SECRET", ""),
+		FrontendURL:   GetEnv("FRONTEND_URL", "http://localhost:5173"),
+		MailgunAPIKey: GetEnv("MAILGUN_API_KEY", ""),
+		MailgunDomain: GetEnv("MAILGUN_DOMAIN", ""),
 	}
 }
 

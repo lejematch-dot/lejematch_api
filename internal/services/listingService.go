@@ -20,6 +20,16 @@ type CreateListingRequest struct {
 	RoomType      string
 	AvailableFrom string
 	Images        []string
+
+	ListingKind         string
+	SizeSqm             *int
+	Deposit             *int
+	RentalPeriod        string
+	LandlordType        string
+	FurnishedPreference string
+	Facilities          []string
+	TargetAudience      string
+	FacebookURL         string
 }
 
 type UpdateListingRequest struct {
@@ -34,6 +44,16 @@ type UpdateListingRequest struct {
 	AvailableFrom *string
 	Images        []string
 	PromotedUntil *time.Time // admin only
+
+	ListingKind         *string
+	SizeSqm             *int
+	Deposit             *int
+	RentalPeriod        *string
+	LandlordType        *string
+	FurnishedPreference *string
+	Facilities          []string
+	TargetAudience      *string
+	FacebookURL         *string
 }
 
 type ListingService interface {
@@ -63,6 +83,16 @@ func (s *listingService) Create(userID uint, req *CreateListingRequest) (*models
 		Status:        models.ListingStatusActive,
 		AvailableFrom: req.AvailableFrom,
 		Images:        req.Images,
+
+		ListingKind:         models.ListingType(req.ListingKind),
+		SizeSqm:             req.SizeSqm,
+		Deposit:             req.Deposit,
+		RentalPeriod:        strings.TrimSpace(req.RentalPeriod),
+		LandlordType:        strings.TrimSpace(req.LandlordType),
+		FurnishedPreference: strings.TrimSpace(req.FurnishedPreference),
+		Facilities:          req.Facilities,
+		TargetAudience:      strings.TrimSpace(req.TargetAudience),
+		FacebookURL:         strings.TrimSpace(req.FacebookURL),
 	}
 
 	if err := s.listingRepo.Create(listing); err != nil {
@@ -114,6 +144,33 @@ func (s *listingService) Update(listingID int, callerID uint, isAdmin bool, req 
 	}
 	if req.PromotedUntil != nil && isAdmin {
 		fields["promoted_until"] = req.PromotedUntil
+	}
+	if req.ListingKind != nil {
+		fields["listing_kind"] = *req.ListingKind
+	}
+	if req.SizeSqm != nil {
+		fields["size_sqm"] = req.SizeSqm
+	}
+	if req.Deposit != nil {
+		fields["deposit"] = req.Deposit
+	}
+	if req.RentalPeriod != nil {
+		fields["rental_period"] = strings.TrimSpace(*req.RentalPeriod)
+	}
+	if req.LandlordType != nil {
+		fields["landlord_type"] = strings.TrimSpace(*req.LandlordType)
+	}
+	if req.FurnishedPreference != nil {
+		fields["furnished_preference"] = strings.TrimSpace(*req.FurnishedPreference)
+	}
+	if req.Facilities != nil {
+		fields["facilities"] = models.StringSlice(req.Facilities)
+	}
+	if req.TargetAudience != nil {
+		fields["target_audience"] = strings.TrimSpace(*req.TargetAudience)
+	}
+	if req.FacebookURL != nil {
+		fields["facebook_url"] = strings.TrimSpace(*req.FacebookURL)
 	}
 
 	if len(fields) == 0 {

@@ -26,26 +26,16 @@ func Run() error {
 	})
 
 	app.Use(cors.New(cors.Config{
-		AllowOrigins: "*", // TODO: restrict to specific domain(s) before production (e.g. "https://lejematch.dk")
+		AllowOrigins: config.AppConfigInstance.FrontendURL,
 		AllowHeaders: "Origin, Content-Type, Accept, Authorization",
 		AllowMethods: "GET,POST,HEAD,PUT,DELETE,PATCH",
 	}))
 
-	// Limit login attempts to 10 per minute per IP
-	//app.Use("/api/v1/auth/login", limiter.New(limiter.Config{
-	//	Max:        10,
-	//	Expiration: 1 * time.Minute,
-	//}))
-
-	// Limit account creation to 5 per hour per IP
-	//app.Use("/api/v1/users", limiter.New(limiter.Config{
-	//	Max:        5,
-	//	Expiration: 1 * time.Hour,
-	//}))
-
 	app.Get("/health", func(c *fiber.Ctx) error {
 		return c.JSON(fiber.Map{"status": "ok"})
 	})
+
+	app.Static("/uploads", "./uploads")
 
 	// Initialize Database
 	database.InitDB()
