@@ -44,6 +44,11 @@ func CreateUpload(c *fiber.Ctx) error {
 	if !ok {
 		ext = strings.ToLower(filepath.Ext(file.Filename))
 		if !allowedExtensions[ext] {
+			if contentType == "image/heic" || contentType == "image/heif" || ext == ".heic" || ext == ".heif" {
+				return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{
+					"error": "Billedet er i HEIC-format, som ikke understøttes. Skift til JPEG under Indstillinger → Kamera → Formater → Mest kompatibelt på din iPhone, eller vælg \"Behold som JPEG\" når du deler billedet.",
+				})
+			}
 			return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{"error": "Filtypen understøttes ikke"})
 		}
 	}
