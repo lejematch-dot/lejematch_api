@@ -31,6 +31,9 @@ func UpdateListing(c *fiber.Ctx) error {
 		if errors.Is(err, services.ErrNotOwner) {
 			return fiber.ErrForbidden
 		}
+		if errors.Is(err, services.ErrTooFewImages) {
+			return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{"error": "Tilføj mindst 5 billeder."})
+		}
 		return fiber.ErrInternalServerError
 	}
 

@@ -3,6 +3,7 @@ package uploads
 import (
 	"os"
 	"path/filepath"
+	"strings"
 
 	"github.com/gofiber/fiber/v2"
 	"github.com/google/uuid"
@@ -10,12 +11,22 @@ import (
 
 const maxUploadSize = 5 * 1024 * 1024 // 5MB
 
+// allowedExtensions bruges som fallback hvis browseren ikke sender en
+// genkendelig Content-Type. Filnavne fra telefoner (f.eks. iPhones
+// "IMG_1234.JPG") har ofte endelsen med store bogstaver.
 var allowedExtensions = map[string]bool{
 	".jpg":  true,
 	".jpeg": true,
 	".png":  true,
 	".webp": true,
 	".gif":  true,
+}
+
+var contentTypeExtensions = map[string]string{
+	"image/jpeg": ".jpg",
+	"image/png":  ".png",
+	"image/webp": ".webp",
+	"image/gif":  ".gif",
 }
 
 func CreateUpload(c *fiber.Ctx) error {
@@ -28,9 +39,13 @@ func CreateUpload(c *fiber.Ctx) error {
 		return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{"error": "Filen er for stor (maks 5MB)"})
 	}
 
-	ext := filepath.Ext(file.Filename)
-	if !allowedExtensions[ext] {
-		return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{"error": "Filtypen understøttes ikke"})
+	contentType := strings.ToLower(strings.TrimSpace(file.Header.Get("Content-Type")))
+	ext, ok := contentTypeExtensions[contentType]
+	if !ok {
+		ext = strings.ToLower(filepath.Ext(file.Filename))
+		if !allowedExtensions[ext] {
+			return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{"error": "Filtypen understøttes ikke"})
+		}
 	}
 
 	if err := os.MkdirAll("./uploads", 0755); err != nil {

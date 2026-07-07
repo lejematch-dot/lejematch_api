@@ -3,6 +3,7 @@ package listings
 import (
 	"Lejematch/internal/database/repo"
 	"Lejematch/internal/services"
+	"errors"
 
 	"github.com/gofiber/fiber/v2"
 )
@@ -18,6 +19,9 @@ func CreateListing(c *fiber.Ctx) error {
 	listingService := services.NewListingService(repo.NewListingsRepo())
 	listing, err := listingService.Create(caller.UserID, &req)
 	if err != nil {
+		if errors.Is(err, services.ErrTooFewImages) {
+			return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{"error": "Tilføj mindst 5 billeder."})
+		}
 		return fiber.ErrInternalServerError
 	}
 

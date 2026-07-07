@@ -3,6 +3,7 @@ package seekers
 import (
 	"Lejematch/internal/database/repo"
 	"Lejematch/internal/services"
+	"errors"
 
 	"github.com/gofiber/fiber/v2"
 )
@@ -18,6 +19,9 @@ func CreateSeeker(c *fiber.Ctx) error {
 	seekerService := services.NewSeekerService(repo.NewSeekersRepo())
 	seeker, err := seekerService.Create(caller.UserID, &req)
 	if err != nil {
+		if errors.Is(err, services.ErrTooFewImages) {
+			return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{"error": "Tilføj mindst 3 billeder."})
+		}
 		return fiber.ErrInternalServerError
 	}
 

@@ -6,6 +6,8 @@ import (
 	"strings"
 )
 
+const minSeekerImages = 3
+
 type CreateSeekerRequest struct {
 	Title       string
 	Description string
@@ -56,6 +58,10 @@ func NewSeekerService(seekerRepo *repo.SeekersRepo) SeekerService {
 }
 
 func (s *seekerService) Create(userID uint, req *CreateSeekerRequest) (*models.SeekerListing, error) {
+	if len(req.Images) < minSeekerImages {
+		return nil, ErrTooFewImages
+	}
+
 	seeker := &models.SeekerListing{
 		UserID:      userID,
 		Title:       strings.TrimSpace(req.Title),
@@ -89,6 +95,10 @@ func (s *seekerService) Update(seekerID int, callerID uint, isAdmin bool, req *U
 
 	if !isAdmin && seeker.UserID != callerID {
 		return ErrNotOwner
+	}
+
+	if req.Images != nil && len(req.Images) < minSeekerImages {
+		return ErrTooFewImages
 	}
 
 	fields := make(map[string]interface{})

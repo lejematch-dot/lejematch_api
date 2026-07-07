@@ -9,6 +9,9 @@ import (
 )
 
 var ErrNotOwner = errors.New("not the owner of this listing")
+var ErrTooFewImages = errors.New("too few images")
+
+const minListingImages = 5
 
 type CreateListingRequest struct {
 	Title         string
@@ -73,6 +76,10 @@ func NewListingService(listingRepo *repo.ListingsRepo) ListingService {
 }
 
 func (s *listingService) Create(userID uint, req *CreateListingRequest) (*models.Listing, error) {
+	if len(req.Images) < minListingImages {
+		return nil, ErrTooFewImages
+	}
+
 	listing := &models.Listing{
 		UserID:        userID,
 		Title:         strings.TrimSpace(req.Title),
@@ -112,6 +119,10 @@ func (s *listingService) Update(listingID int, callerID uint, isAdmin bool, req 
 
 	if !isAdmin && listing.UserID != callerID {
 		return ErrNotOwner
+	}
+
+	if req.Images != nil && len(req.Images) < minListingImages {
+		return ErrTooFewImages
 	}
 
 	fields := make(map[string]interface{})
