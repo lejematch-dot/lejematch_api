@@ -15,7 +15,7 @@ func NewUsersRepo() *UsersRepo {
 
 func (u *UsersRepo) GetByEmailWithPassword(email string) (*models.User, error) {
 	var user models.User
-	err := u.db.Where("email = ?", email).First(&user).Error
+	err := u.db.Where("LOWER(email) = LOWER(?)", email).First(&user).Error
 	return &user, err
 }
 
