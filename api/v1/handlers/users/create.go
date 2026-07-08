@@ -20,6 +20,9 @@ func CreateUser(c *fiber.Ctx) error {
 		if errors.Is(err, services.ErrDuplicateEntry) {
 			return c.Status(fiber.StatusConflict).JSON(fiber.Map{"error": err.Error()})
 		}
+		if errors.Is(err, services.ErrImageRequired) {
+			return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{"error": "Tilføj et profilbillede."})
+		}
 		return fiber.ErrInternalServerError
 	}
 

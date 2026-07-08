@@ -22,6 +22,7 @@ func isDuplicateKeyError(err error) bool {
 var (
 	ErrInvalidCredentials = errors.New("invalid current password")
 	ErrDuplicateEntry     = errors.New("email or phone already in use")
+	ErrImageRequired      = errors.New("profile image is required")
 )
 
 type CreateUserRequest struct {
@@ -101,6 +102,10 @@ func (s *userService) CreateUserWithProfile(req *CreateUserRequest) (*models.Use
 	req.Phone = strings.TrimSpace(req.Phone)
 	req.City = strings.TrimSpace(req.City)
 	req.ImageURL = strings.TrimSpace(req.ImageURL)
+
+	if req.ImageURL == "" {
+		return nil, ErrImageRequired
+	}
 
 	// Hash password
 	hashedPassword, err := security.HashPassword(req.Password)
