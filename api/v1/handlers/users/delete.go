@@ -32,7 +32,7 @@ func DeleteUserAndProfile(c *fiber.Ctx) error {
 		return fiber.ErrInternalServerError
 	}
 
-	err = userRepo.Delete(user)
+	err = userRepo.HardDelete(user)
 	if err != nil {
 		return err
 	}
