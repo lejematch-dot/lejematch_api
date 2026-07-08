@@ -1,6 +1,7 @@
 package services
 
 import (
+	"Lejematch/internal/citynorm"
 	"Lejematch/internal/database/models"
 	"Lejematch/internal/database/repo"
 	"strings"
@@ -66,7 +67,7 @@ func (s *seekerService) Create(userID uint, req *CreateSeekerRequest) (*models.S
 		UserID:      userID,
 		Title:       strings.TrimSpace(req.Title),
 		Description: strings.TrimSpace(req.Description),
-		City:        strings.TrimSpace(req.City),
+		City:        citynorm.Normalize(req.City),
 		MaxBudget:   req.MaxBudget,
 		RoomType:    models.RoomType(req.RoomType),
 		Status:      models.ListingStatusActive,
@@ -109,7 +110,7 @@ func (s *seekerService) Update(seekerID int, callerID uint, isAdmin bool, req *U
 		fields["description"] = strings.TrimSpace(*req.Description)
 	}
 	if req.City != nil {
-		fields["city"] = strings.TrimSpace(*req.City)
+		fields["city"] = citynorm.Normalize(*req.City)
 	}
 	if req.MaxBudget != nil {
 		fields["max_budget"] = *req.MaxBudget

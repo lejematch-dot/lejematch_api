@@ -1,6 +1,7 @@
 package services
 
 import (
+	"Lejematch/internal/citynorm"
 	"Lejematch/internal/database/models"
 	"Lejematch/internal/database/repo"
 	"errors"
@@ -85,7 +86,7 @@ func (s *listingService) Create(userID uint, req *CreateListingRequest) (*models
 		Title:         strings.TrimSpace(req.Title),
 		Description:   strings.TrimSpace(req.Description),
 		Price:         req.Price,
-		City:          strings.TrimSpace(req.City),
+		City:          citynorm.Normalize(req.City),
 		Zip:           strings.TrimSpace(req.Zip),
 		Area:          strings.TrimSpace(req.Area),
 		RoomType:      models.RoomType(req.RoomType),
@@ -136,7 +137,7 @@ func (s *listingService) Update(listingID int, callerID uint, isAdmin bool, req 
 		fields["price"] = *req.Price
 	}
 	if req.City != nil {
-		fields["city"] = strings.TrimSpace(*req.City)
+		fields["city"] = citynorm.Normalize(*req.City)
 	}
 	if req.Zip != nil {
 		fields["zip"] = strings.TrimSpace(*req.Zip)
