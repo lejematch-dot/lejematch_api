@@ -37,3 +37,11 @@ var ReportLimiter = limiter.New(limiter.Config{
 	Max:        20,
 	Expiration: 1 * time.Hour,
 })
+
+// PublicUploadLimiter begrænser det uautentificerede upload-endpoint (brugt
+// til profilbillede under oprettelse, før kontoen — og dermed en JWT —
+// findes) til 20 pr. time pr. IP.
+var PublicUploadLimiter = limiter.New(limiter.Config{
+	Max:        20,
+	Expiration: 1 * time.Hour,
+})
