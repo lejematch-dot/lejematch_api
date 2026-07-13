@@ -97,18 +97,19 @@ func sendWelcomeEmail(email, firstName string) error {
 	return SendEmail(email, subject, html)
 }
 
-// RequestPasswordReset sender et nulstil-adgangskode-link. Svarer altid succes
-// til klienten (håndteres i handleren) uanset om e-mailen findes, for ikke at
-// afsløre registrerede e-mails.
-func RequestPasswordReset(userRepo *repo.UsersRepo, email string) error {
+// RequestPasswordReset sender et nulstil-adgangskode-link. Returnerer om
+// kontoen findes, så handleren bevidst kan vise en tydelig besked i stedet
+// for den anbefalede uspecifikke besked (fravalgt efter aftale — se
+// forgot_password.go for afvejningen).
+func RequestPasswordReset(userRepo *repo.UsersRepo, email string) (bool, error) {
 	user, err := userRepo.GetByEmailWithPassword(email)
 	if err != nil {
-		return nil
+		return false, nil
 	}
 
 	token, err := GenerateActionToken(user.ID, "reset_password", passwordResetTTL)
 	if err != nil {
-		return err
+		return true, err
 	}
 
 	link := config.AppConfigInstance.FrontendURL + "/nulstil-adgangskode/" + token
@@ -124,7 +125,7 @@ func RequestPasswordReset(userRepo *repo.UsersRepo, email string) error {
 		</body>
 	</html>
 	`
-	return SendEmail(user.Email, subject, html)
+	return true, SendEmail(user.Email, subject, html)
 }
 
 // ResetPassword sætter en ny adgangskode ud fra et gyldigt reset-token.

@@ -18,12 +18,13 @@ func ForgotPassword(c *fiber.Ctx) error {
 	}
 
 	usersRepo := repo.NewUsersRepo()
-	// Svar altid succes uanset om e-mailen findes, for ikke at afsløre
-	// hvilke e-mails er registreret — men log fejl, så en fejlkonfigureret
-	// mailer ikke fejler stille.
-	if err := services.RequestPasswordReset(usersRepo, strings.ToLower(strings.TrimSpace(req.Email))); err != nil {
+	// Afslører bevidst om kontoen findes (fravalgt anti-enumeration-praksis
+	// efter aftale, til fordel for en tydelig brugeroplevelse) — men log
+	// mail-fejl, så en fejlkonfigureret mailer ikke fejler stille.
+	exists, err := services.RequestPasswordReset(usersRepo, strings.ToLower(strings.TrimSpace(req.Email)))
+	if err != nil {
 		log.Printf("failed to send password reset email: %v", err)
 	}
 
-	return c.JSON(fiber.Map{"success": true})
+	return c.JSON(fiber.Map{"success": true, "accountExists": exists})
 }
