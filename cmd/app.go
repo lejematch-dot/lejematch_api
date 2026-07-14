@@ -23,6 +23,13 @@ func Run() error {
 		ServerHeader: "Lejematch/api/" + Version + " (Build " + Build + ")",
 		BodyLimit:    30 * 1024 * 1024, // 30MB — skal være over uploads.maxUploadSize (25MB) så vores egen fejlbesked kan nå at fyre først
 
+		// Caddy er den eneste indgang til denne container (internt Docker-netværk,
+		// ikke offentligt tilgængelig direkte). Uden dette ser c.IP() Caddys egen
+		// IP for alle requests, hvilket får IP-baserede rate-limiters (login,
+		// registrering, m.fl.) til fejlagtigt at dele én bucket mellem alle brugere.
+		EnableTrustedProxyCheck: true,
+		TrustedProxies:          []string{"10.0.0.0/8", "172.16.0.0/12", "192.168.0.0/16"},
+		ProxyHeader:             fiber.HeaderXForwardedFor,
 	})
 
 	app.Use(cors.New(cors.Config{
