@@ -162,7 +162,28 @@ func (s *userService) CreateUserWithProfile(req *CreateUserRequest) (*models.Use
 		log.Printf("failed to send verification email to %s: %v", user.Email, err)
 	}
 
+	// Info-mail til admin. Samme fail-soft princip som ovenfor.
+	if err := sendAdminNewUserNotification(displayName, user.Email, userType); err != nil {
+		log.Printf("failed to send admin new-user notification for %s: %v", user.Email, err)
+	}
+
 	return user, nil
+}
+
+// sendAdminNewUserNotification giver kontakt@lejematch.dk besked om en ny bruger.
+func sendAdminNewUserNotification(displayName, email, userType string) error {
+	subject := "Ny bruger oprettet: " + displayName
+	html := `
+	<html>
+		<body style="font-family: Arial, sans-serif; line-height: 1.6; color: #333;">
+			<h2>Ny bruger oprettet</h2>
+			<p><strong>Navn:</strong> ` + displayName + `</p>
+			<p><strong>E-mail:</strong> ` + email + `</p>
+			<p><strong>Type:</strong> ` + userType + `</p>
+		</body>
+	</html>
+	`
+	return SendEmail("kontakt@lejematch.dk", subject, html)
 }
 
 // sendVerificationEmail sender et bekræftelseslink til den nyoprettede bruger.
