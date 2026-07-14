@@ -28,6 +28,8 @@ type CreateListingRequest struct {
 	ListingKind         string
 	SizeSqm             *int
 	Deposit             *int
+	Aconto              *int
+	ForudbetaltHusleje  *int
 	RentalPeriod        string
 	RentalPeriodDetails string
 	LandlordType        string
@@ -53,6 +55,8 @@ type UpdateListingRequest struct {
 	ListingKind         *string
 	SizeSqm             *int
 	Deposit             *int
+	Aconto              *int
+	ForudbetaltHusleje  *int
 	RentalPeriod        *string
 	RentalPeriodDetails *string
 	LandlordType        *string
@@ -97,6 +101,8 @@ func (s *listingService) Create(userID uint, req *CreateListingRequest) (*models
 		ListingKind:         models.ListingType(req.ListingKind),
 		SizeSqm:             req.SizeSqm,
 		Deposit:             req.Deposit,
+		Aconto:              req.Aconto,
+		ForudbetaltHusleje:  req.ForudbetaltHusleje,
 		RentalPeriod:        strings.TrimSpace(req.RentalPeriod),
 		RentalPeriodDetails: strings.TrimSpace(req.RentalPeriodDetails),
 		LandlordType:        strings.TrimSpace(req.LandlordType),
@@ -168,6 +174,12 @@ func (s *listingService) Update(listingID int, callerID uint, isAdmin bool, req 
 	}
 	if req.Deposit != nil {
 		fields["deposit"] = req.Deposit
+	}
+	if req.Aconto != nil {
+		fields["aconto"] = req.Aconto
+	}
+	if req.ForudbetaltHusleje != nil {
+		fields["forudbetalt_husleje"] = req.ForudbetaltHusleje
 	}
 	if req.RentalPeriod != nil {
 		fields["rental_period"] = strings.TrimSpace(*req.RentalPeriod)
