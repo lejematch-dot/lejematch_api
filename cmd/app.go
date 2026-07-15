@@ -4,6 +4,7 @@ import (
 	"Lejematch/api/v1/routes"
 	"Lejematch/config"
 	"Lejematch/internal/database"
+	"Lejematch/internal/services"
 
 	"github.com/gofiber/fiber/v2"
 	"github.com/gofiber/fiber/v2/middleware/cors"
@@ -53,6 +54,8 @@ func Run() error {
 
 	// Seed dummy data — comment out when no longer needed
 	database.Seed()
+
+	services.StartDailyContactDigest()
 
 	//Setup routes
 	routes.SetupRoutes(app)

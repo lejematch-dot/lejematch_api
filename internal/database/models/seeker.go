@@ -15,8 +15,8 @@ type SeekerListing struct {
 	Description string        // om personen/personerne + hvad de søger
 	City        string        `gorm:"not null;index"` // ønsket by, normaliseret (bruges til filtrering)
 	CityDisplay string        // ønsket by/bydel, præcis som brugeren skrev det (vises på selve opslaget)
-	MaxBudget   int           `gorm:"not null"`       // DKK per måned, max de vil betale
-	RoomType    RoomType      `gorm:"not null"`       // ønsket boligtype: private/shared/apartment
+	MaxBudget   int           `gorm:"not null"` // DKK per måned, max de vil betale
+	RoomType    RoomType      `gorm:"not null"` // ønsket boligtype: private/shared/apartment
 	Status      ListingStatus `gorm:"not null;default:'active';index"`
 	MoveInFrom  string        // ISO date string, f.eks. "2024-08-01"
 	Images      StringSlice   `gorm:"type:jsonb"` // profilbilleder

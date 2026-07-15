@@ -72,8 +72,8 @@ type Listing struct {
 	ListingKind         ListingType `gorm:"index"` // room/1v/2v/3v/4v/5v/house — supplerer RoomType
 	SizeSqm             *int
 	Deposit             *int
-	Aconto              *int // aconto/forbrug, DKK pr. måned
-	ForudbetaltHusleje  *int // DKK
+	Aconto              *int        // aconto/forbrug, DKK pr. måned
+	ForudbetaltHusleje  *int        // DKK
 	RentalPeriod        string      `gorm:"index"` // "unlimited" | "limited"
 	RentalPeriodDetails string      // fri tekst, kun relevant når RentalPeriod = "limited"
 	LandlordType        string      `gorm:"index"` // "boligselskab" | "privat"
