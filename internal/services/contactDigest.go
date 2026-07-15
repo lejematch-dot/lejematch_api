@@ -43,6 +43,13 @@ func StartDailyContactDigest() {
 // daglige mail viser antal kontakter for.
 const contactDigestDays = 3
 
+// TriggerContactDigestNow sender den daglige oversigt med det samme, uden at
+// vente på kl. 22. Bruges af admin-endpointet til at sende en udeblevet mail
+// manuelt, eller til at teste at afsendelsen virker.
+func TriggerContactDigestNow() {
+	sendDailyContactDigest()
+}
+
 func sendDailyContactDigest() {
 	now := time.Now().In(copenhagen)
 	startOfToday := time.Date(now.Year(), now.Month(), now.Day(), 0, 0, 0, 0, copenhagen)

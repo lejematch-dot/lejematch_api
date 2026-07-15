@@ -1,0 +1,13 @@
+package routes
+
+import (
+	"Lejematch/api/auth"
+	handler "Lejematch/api/v1/handlers/admin"
+
+	"github.com/gofiber/fiber/v2"
+)
+
+func SetupAdminRoutes(app fiber.Router) {
+	admin := app.Group("/admin", auth.JWTmiddleware)
+	admin.Post("/contact-digest/trigger", handler.TriggerContactDigest)
+}
