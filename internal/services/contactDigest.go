@@ -5,6 +5,7 @@ import (
 	"log"
 	"strconv"
 	"time"
+	_ "time/tzdata" // bager IANA-tidszonedatabasen ind i binaren — runtime-imaget (alpine) har den ikke installeret
 )
 
 var copenhagen *time.Location
@@ -12,6 +13,9 @@ var copenhagen *time.Location
 func init() {
 	loc, err := time.LoadLocation("Europe/Copenhagen")
 	if err != nil {
+		// Uden dette kører den daglige digest på UTC i stedet for dansk tid
+		// uden nogen synlig fejl — så det skal larme, ikke bare falde tilbage.
+		log.Printf("contactDigest: could not load Europe/Copenhagen, falling back to UTC: %v", err)
 		loc = time.UTC
 	}
 	copenhagen = loc
