@@ -68,6 +68,7 @@ func (s *seekerService) Create(userID uint, req *CreateSeekerRequest) (*models.S
 		Title:       strings.TrimSpace(req.Title),
 		Description: strings.TrimSpace(req.Description),
 		City:        citynorm.Normalize(req.City),
+		CityDisplay: strings.TrimSpace(req.City),
 		MaxBudget:   req.MaxBudget,
 		RoomType:    models.RoomType(req.RoomType),
 		Status:      models.ListingStatusActive,
@@ -111,6 +112,7 @@ func (s *seekerService) Update(seekerID int, callerID uint, isAdmin bool, req *U
 	}
 	if req.City != nil {
 		fields["city"] = citynorm.Normalize(*req.City)
+		fields["city_display"] = strings.TrimSpace(*req.City)
 	}
 	if req.MaxBudget != nil {
 		fields["max_budget"] = *req.MaxBudget

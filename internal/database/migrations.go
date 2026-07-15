@@ -48,7 +48,18 @@ func Migrate() {
 		return
 	}
 
+	backfillSeekerCityDisplay()
 	normalizeCities()
+}
+
+// backfillSeekerCityDisplay kopierer den oprindelige (endnu ikke
+// normaliserede) City-tekst over i CityDisplay for rækker der mangler den —
+// kun relevant lige efter CityDisplay-kolonnen er tilføjet. Kører før
+// normalizeCities(), som ellers ville rense City først.
+func backfillSeekerCityDisplay() {
+	if err := DB.Exec(`UPDATE seeker_listings SET city_display = city WHERE city_display = '' OR city_display IS NULL`).Error; err != nil {
+		println(err.Error())
+	}
 }
 
 // normalizeCities ensretter allerede gemte bynavne (f.eks. "Århus",

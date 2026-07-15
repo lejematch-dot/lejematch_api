@@ -48,6 +48,14 @@ func Normalize(raw string) string {
 		return trimmed
 	}
 
+	// Drop alt efter et komma — bydel/kvarter-tilføjelser som
+	// "Aarhus C, Frederiksbjerg" skal normalisere til samme by som "Aarhus C".
+	if idx := strings.Index(trimmed, ","); idx != -1 {
+		if head := strings.TrimSpace(trimmed[:idx]); head != "" {
+			trimmed = head
+		}
+	}
+
 	city := strings.TrimSpace(suffixPattern.ReplaceAllString(trimmed, ""))
 	if city == "" {
 		city = trimmed

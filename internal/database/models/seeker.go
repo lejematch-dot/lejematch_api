@@ -13,7 +13,8 @@ type SeekerListing struct {
 	User        User          `gorm:"foreignKey:UserID;constraint:OnDelete:CASCADE"`
 	Title       string        `gorm:"not null"` // f.eks. "Studerende søger værelse i København"
 	Description string        // om personen/personerne + hvad de søger
-	City        string        `gorm:"not null;index"` // ønsket by
+	City        string        `gorm:"not null;index"` // ønsket by, normaliseret (bruges til filtrering)
+	CityDisplay string        // ønsket by/bydel, præcis som brugeren skrev det (vises på selve opslaget)
 	MaxBudget   int           `gorm:"not null"`       // DKK per måned, max de vil betale
 	RoomType    RoomType      `gorm:"not null"`       // ønsket boligtype: private/shared/apartment
 	Status      ListingStatus `gorm:"not null;default:'active';index"`
