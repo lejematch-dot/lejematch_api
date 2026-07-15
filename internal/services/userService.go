@@ -7,12 +7,17 @@ import (
 	"Lejematch/internal/security"
 	"errors"
 	"log"
+	"regexp"
 	"strings"
 	"time"
 	"unicode"
 )
 
 const emailVerificationTTL = 1 * time.Hour
+
+// emailPattern kræver et punktum i domænet (fanger fx "s@2") — ikke
+// RFC 5322-fuldstændig, men udelukker de åbenlyst ugyldige adresser.
+var emailPattern = regexp.MustCompile(`^[^\s@]+@[^\s@]+\.[^\s@]+$`)
 
 // isDuplicateKeyError detects PostgreSQL unique constraint violations (code 23505).
 func isDuplicateKeyError(err error) bool {
@@ -23,6 +28,7 @@ var (
 	ErrInvalidCredentials = errors.New("invalid current password")
 	ErrDuplicateEntry     = errors.New("email or phone already in use")
 	ErrImageRequired      = errors.New("profile image is required")
+	ErrInvalidEmail       = errors.New("invalid email format")
 )
 
 type CreateUserRequest struct {
@@ -105,6 +111,10 @@ func (s *userService) CreateUserWithProfile(req *CreateUserRequest) (*models.Use
 
 	if req.ImageURL == "" {
 		return nil, ErrImageRequired
+	}
+
+	if !emailPattern.MatchString(req.Email) {
+		return nil, ErrInvalidEmail
 	}
 
 	// Hash password
