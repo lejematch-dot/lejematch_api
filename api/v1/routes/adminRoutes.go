@@ -10,4 +10,5 @@ import (
 func SetupAdminRoutes(app fiber.Router) {
 	admin := app.Group("/admin", auth.JWTmiddleware)
 	admin.Post("/contact-digest/trigger", handler.TriggerContactDigest)
+	admin.Get("/stats", handler.GetStats)
 }
