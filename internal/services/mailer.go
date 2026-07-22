@@ -37,3 +37,23 @@ func SendEmail(to, subject, html string) error {
 	_, _, err := mg.Send(ctx, message)
 	return err
 }
+
+const emailLogoURL = "https://lejematch.dk/email-logo.png"
+
+// EmailHeader er logoet der vises øverst i vores kundevendte mails
+// (kontakt-notifikationer, velkomstmail m.fl.) — centreret, begrænset
+// bredde så det ikke dominerer mailen.
+func EmailHeader() string {
+	return `<div style="text-align: center; margin-bottom: 24px;">
+		<img src="` + emailLogoURL + `" alt="LejeMatch" style="max-width: 150px; height: auto;" />
+	</div>`
+}
+
+// EmailSignature er den faste afslutning på vores kundevendte mails.
+func EmailSignature() string {
+	return `<p style="margin-top: 32px; color: #333;">
+		Mvh,<br>
+		LejeMatch<br>
+		<a href="https://lejematch.dk" style="color: #006644;">lejematch.dk</a>
+	</p>`
+}

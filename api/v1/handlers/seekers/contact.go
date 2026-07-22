@@ -91,6 +91,7 @@ func sendSeekerContactEmail(recipientEmail, recipientName, seekerTitle, senderNa
 	htmlContent := `
 	<html>
 		<body style="font-family: Arial, sans-serif; line-height: 1.6; color: #333;">
+			` + services.EmailHeader() + `
 			<h2>Ny henvendelse på dit opslag</h2>
 			<p>Hej ` + recipientName + `,</p>
 			<p>Der er nogen der har set dit opslag <strong>` + seekerTitle + `</strong> og vil kontakte dig.</p>
@@ -112,6 +113,7 @@ func sendSeekerContactEmail(recipientEmail, recipientName, seekerTitle, senderNa
 			<p style="color: #666; font-size: 12px;">
 				Denne email er sendt via LejeMatch. Log ind for at se beskeden under "Beskeder".
 			</p>
+			` + services.EmailSignature() + `
 		</body>
 	</html>
 	`
