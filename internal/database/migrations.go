@@ -6,6 +6,12 @@ import (
 )
 
 func Migrate() {
+	// Kør før AutoMigrate — hvis kolonnen allerede findes med NULL-rækker
+	// (fra før den fik en not-null-default), kan AutoMigrate ellers ikke
+	// stramme constraintet. Fejler harmløst hvis kolonnen slet ikke findes
+	// endnu (frisk database), AutoMigrate opretter den så korrekt fra bunden.
+	backfillNewsletterOptIn()
+
 	err := DB.AutoMigrate(&models.User{})
 	if err != nil {
 		println(err)
@@ -50,6 +56,15 @@ func Migrate() {
 
 	backfillSeekerCityDisplay()
 	normalizeCities()
+}
+
+// backfillNewsletterOptIn sætter newsletter_opt_in til false for rækker
+// hvor den står som NULL (fx fordi kolonnen blev tilføjet uden en
+// not-null-default før dette blev rettet).
+func backfillNewsletterOptIn() {
+	if err := DB.Exec(`UPDATE users SET newsletter_opt_in = false WHERE newsletter_opt_in IS NULL`).Error; err != nil {
+		println(err.Error())
+	}
 }
 
 // backfillSeekerCityDisplay kopierer den oprindelige (endnu ikke

@@ -12,5 +12,5 @@ type User struct {
 	Password        string
 	IsAdmin         bool
 	IsActive        bool
-	NewsletterOptIn bool
+	NewsletterOptIn bool `gorm:"not null;default:false"`
 }
