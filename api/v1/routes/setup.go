@@ -14,6 +14,7 @@ func SetupRoutes(app *fiber.App) {
 	SetupContactRoutes(v1)
 	SetupReportRoutes(v1)
 	SetupAdminRoutes(v1)
+	SetupNewsletterRoutes(v1)
 
 	auth := v1.Group("/auth")
 	setupLoginRoutes(auth)

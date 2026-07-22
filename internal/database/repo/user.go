@@ -31,6 +31,23 @@ func (u *UsersRepo) FindByIDWithPassword(id int) (*models.User, error) {
 	return &user, err
 }
 
+// FindNewsletterRecipients henter alle aktive brugere der har sagt ja tak
+// til nyhedsbreve ved oprettelse (eller ikke har afmeldt sig siden).
+func (u *UsersRepo) FindNewsletterRecipients() ([]*models.User, error) {
+	var users []*models.User
+	err := u.db.Where("newsletter_opt_in = ? AND is_active = ?", true, true).Find(&users).Error
+	return users, err
+}
+
+// FindNewsletterInviteTargets henter alle aktive brugere der endnu ikke er
+// tilmeldt nyhedsbreve — bruges til engangs-invitationen til eksisterende
+// brugere, som ikke fik chancen for at tilmelde sig ved oprettelse.
+func (u *UsersRepo) FindNewsletterInviteTargets() ([]*models.User, error) {
+	var users []*models.User
+	err := u.db.Where("newsletter_opt_in = ? AND is_active = ?", false, true).Find(&users).Error
+	return users, err
+}
+
 // HardDelete fjerner brugerens række permanent i stedet for GORMs
 // almindelige soft delete (som blot sætter deleted_at). En rigtig SQL
 // DELETE udløser databasens ON DELETE CASCADE-regler, så profil, opslag,

@@ -40,8 +40,9 @@ type CreateUserRequest struct {
 	City      string
 	ImageURL  string
 
-	Age      *int
-	UserType string
+	Age             *int
+	UserType        string
+	NewsletterOptIn bool
 }
 
 type UpdatePasswordRequest struct {
@@ -125,13 +126,14 @@ func (s *userService) CreateUserWithProfile(req *CreateUserRequest) (*models.Use
 
 	// Create user — inaktiv indtil e-mailen er bekræftet
 	user := &models.User{
-		FirstName: req.FirstName,
-		LastName:  req.LastName,
-		Email:     req.Email,
-		Phone:     req.Phone,
-		Password:  hashedPassword,
-		IsAdmin:   false,
-		IsActive:  false,
+		FirstName:       req.FirstName,
+		LastName:        req.LastName,
+		Email:           req.Email,
+		Phone:           req.Phone,
+		Password:        hashedPassword,
+		IsAdmin:         false,
+		IsActive:        false,
+		NewsletterOptIn: req.NewsletterOptIn,
 	}
 
 	// Save user
