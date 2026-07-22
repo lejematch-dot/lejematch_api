@@ -19,14 +19,9 @@ var RegisterLimiter = limiter.New(limiter.Config{
 	Expiration: 1 * time.Hour,
 })
 
-// ForgotPasswordLimiter og ResendVerificationLimiter begrænser hver til 5 pr.
-// time pr. IP, så de ikke kan bruges til at spamme andres indbakker med mails.
+// ForgotPasswordLimiter begrænser til 5 pr. time pr. IP, så den ikke kan
+// bruges til at spamme andres indbakker med mails.
 var ForgotPasswordLimiter = limiter.New(limiter.Config{
-	Max:        5,
-	Expiration: 1 * time.Hour,
-})
-
-var ResendVerificationLimiter = limiter.New(limiter.Config{
 	Max:        5,
 	Expiration: 1 * time.Hour,
 })

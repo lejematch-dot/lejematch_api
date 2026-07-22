@@ -4,53 +4,12 @@ import (
 	"Lejematch/config"
 	"Lejematch/internal/database/repo"
 	"Lejematch/internal/security"
-	"errors"
-	"log"
 	"time"
 )
 
 const passwordResetTTL = 1 * time.Hour
 
-var ErrAlreadyVerified = errors.New("email already verified")
-
-// ResendVerification sender et nyt bekræftelseslink. Kaldes stille (ingen fejl
-// til klienten) hvis brugeren ikke findes, for ikke at afsløre hvilke e-mails
-// er registreret.
-func ResendVerification(userRepo *repo.UsersRepo, email string) error {
-	user, err := userRepo.GetByEmailWithPassword(email)
-	if err != nil {
-		return nil
-	}
-	if user.IsActive {
-		return ErrAlreadyVerified
-	}
-	return sendVerificationEmail(user.ID, user.Email, user.FirstName)
-}
-
-// VerifyEmail aktiverer kontoen tilhørende et gyldigt bekræftelses-token, og
-// sender derefter et velkomstbrev. Fejl i selve velkomstmailen må ikke fejle
-// verificeringen — kontoen er aktiv uanset — men logges så en fejlkonfigureret
-// mailer ikke er usynlig.
-func VerifyEmail(userRepo *repo.UsersRepo, token string) error {
-	userID, err := ParseActionToken(token, "verify_email")
-	if err != nil {
-		return err
-	}
-	if err := userRepo.UpdateFields(int(userID), map[string]interface{}{"is_active": true}); err != nil {
-		return err
-	}
-
-	user, err := userRepo.FindByID(int(userID))
-	if err != nil {
-		return nil
-	}
-	if err := sendWelcomeEmail(user.Email, user.FirstName); err != nil {
-		log.Printf("failed to send welcome email to %s: %v", user.Email, err)
-	}
-	return nil
-}
-
-// sendWelcomeEmail sender velkomstbrevet efter en vellykket e-mailbekræftelse.
+// sendWelcomeEmail sender velkomstbrevet lige efter oprettelse.
 func sendWelcomeEmail(email, firstName string) error {
 	subject := "Velkommen til LejeMatch!"
 	html := `

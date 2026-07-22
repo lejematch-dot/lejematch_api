@@ -1,7 +1,6 @@
 package services
 
 import (
-	"Lejematch/config"
 	"Lejematch/internal/database/models"
 	"Lejematch/internal/database/repo"
 	"Lejematch/internal/security"
@@ -9,11 +8,8 @@ import (
 	"log"
 	"regexp"
 	"strings"
-	"time"
 	"unicode"
 )
-
-const emailVerificationTTL = 1 * time.Hour
 
 // emailPattern kræver et punktum i domænet (fanger fx "s@2") — ikke
 // RFC 5322-fuldstændig, men udelukker de åbenlyst ugyldige adresser.
@@ -124,7 +120,7 @@ func (s *userService) CreateUserWithProfile(req *CreateUserRequest) (*models.Use
 		return nil, err
 	}
 
-	// Create user — inaktiv indtil e-mailen er bekræftet
+	// Create user — aktiv med det samme, ingen e-mail-bekræftelse krævet
 	user := &models.User{
 		FirstName:       req.FirstName,
 		LastName:        req.LastName,
@@ -132,7 +128,7 @@ func (s *userService) CreateUserWithProfile(req *CreateUserRequest) (*models.Use
 		Phone:           req.Phone,
 		Password:        hashedPassword,
 		IsAdmin:         false,
-		IsActive:        false,
+		IsActive:        true,
 		NewsletterOptIn: req.NewsletterOptIn,
 	}
 
@@ -167,11 +163,10 @@ func (s *userService) CreateUserWithProfile(req *CreateUserRequest) (*models.Use
 		return nil, err
 	}
 
-	// Send bekræftelses-mail. Fejl her må ikke fejle selve oprettelsen —
-	// brugeren kan altid bede om en ny via "resend-verification" — men skal
+	// Send velkomstmail. Fejl her må ikke fejle selve oprettelsen, men skal
 	// stadig logges, ellers er en fejlkonfigureret mailer usynlig.
-	if err := sendVerificationEmail(user.ID, user.Email, user.FirstName); err != nil {
-		log.Printf("failed to send verification email to %s: %v", user.Email, err)
+	if err := sendWelcomeEmail(user.Email, user.FirstName); err != nil {
+		log.Printf("failed to send welcome email to %s: %v", user.Email, err)
 	}
 
 	// Info-mail til admin. Samme fail-soft princip som ovenfor.
@@ -196,28 +191,6 @@ func sendAdminNewUserNotification(displayName, email, userType string) error {
 	</html>
 	`
 	return SendEmail("kontakt@lejematch.dk", subject, html)
-}
-
-// sendVerificationEmail sender et bekræftelseslink til den nyoprettede bruger.
-func sendVerificationEmail(userID uint, email, firstName string) error {
-	token, err := GenerateActionToken(userID, "verify_email", emailVerificationTTL)
-	if err != nil {
-		return err
-	}
-
-	link := config.AppConfigInstance.FrontendURL + "/bekraeft-email/" + token
-	subject := "Bekræft din e-mail hos LejeMatch"
-	html := `
-	<html>
-		<body style="font-family: Arial, sans-serif; line-height: 1.6; color: #333;">
-			<h2>Velkommen til LejeMatch, ` + firstName + `!</h2>
-			<p>Klik på linket for at bekræfte din e-mail og aktivere din konto:</p>
-			<p><a href="` + link + `">Bekræft din e-mail</a></p>
-			<p style="color: #666; font-size: 12px;">Linket udløber om 1 time.</p>
-		</body>
-	</html>
-	`
-	return SendEmail(email, subject, html)
 }
 
 func (s *userService) UpdateUser(userID int, req *UpdateUserRequest) error {
