@@ -19,6 +19,7 @@ var aliases = map[string]string{
 	"kobenhavn":  "København",
 	"københavn":  "København",
 	"koebenhavn": "København",
+	"odense":     "Odense",
 }
 
 // Matcher et afsluttende postnummer-distrikt, f.eks. " C", " N", " SV".
@@ -63,6 +64,16 @@ func Normalize(raw string) string {
 
 	if canonical, ok := aliases[strings.ToLower(city)]; ok {
 		return canonical
+	}
+
+	// Fritekstfeltet lader folk skrive hvad som helst efter bynavnet (fx
+	// "Aarhus kommune" eller "Aarhus eller Trøjborg") — for de store byer i
+	// aliases-listen samler vi alt der starter med bynavnet under samme
+	// filter, uanset hvad der følger efter.
+	if firstWord := strings.Fields(city); len(firstWord) > 0 {
+		if canonical, ok := aliases[strings.ToLower(firstWord[0])]; ok {
+			return canonical
+		}
 	}
 
 	return titleCase(city)
