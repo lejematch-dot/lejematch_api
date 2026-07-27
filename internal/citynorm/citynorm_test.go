@@ -20,6 +20,10 @@ func TestNormalize(t *testing.T) {
 		"Aalborg Øst":              "Aalborg",
 		"København kommune":        "København",
 		"Odense kommune":           "Odense",
+		"Aarhus/ Viby K":           "Aarhus",
+		"Aarhus/Viby":              "Aarhus",
+		"Aarhusvej 5":              "Aarhusvej 5",
+		"Risskov":                  "Risskov",
 		"":                         "",
 		"   ":                      "",
 	}

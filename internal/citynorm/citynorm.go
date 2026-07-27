@@ -9,6 +9,7 @@ import (
 	"regexp"
 	"strings"
 	"unicode"
+	"unicode/utf8"
 )
 
 var aliases = map[string]string{
@@ -62,16 +63,23 @@ func Normalize(raw string) string {
 		city = trimmed
 	}
 
-	if canonical, ok := aliases[strings.ToLower(city)]; ok {
-		return canonical
-	}
-
 	// Fritekstfeltet lader folk skrive hvad som helst efter bynavnet (fx
-	// "Aarhus kommune" eller "Aarhus eller Trøjborg") — for de store byer i
-	// aliases-listen samler vi alt der starter med bynavnet under samme
-	// filter, uanset hvad der følger efter.
-	if firstWord := strings.Fields(city); len(firstWord) > 0 {
-		if canonical, ok := aliases[strings.ToLower(firstWord[0])]; ok {
+	// "Aarhus kommune", "Aarhus eller Trøjborg", "Aarhus/ Viby K") — for de
+	// store byer i aliases-listen samler vi alt der starter med bynavnet
+	// under samme filter, uanset hvad der følger efter. Matcher på prefix
+	// (ikke kun hele ord), da folk ikke altid sætter mellemrum før resten
+	// ("Aarhus/Viby").
+	lowerCity := strings.ToLower(city)
+	for key, canonical := range aliases {
+		if !strings.HasPrefix(lowerCity, key) {
+			continue
+		}
+		rest := lowerCity[len(key):]
+		if rest == "" {
+			return canonical
+		}
+		r, _ := utf8.DecodeRuneInString(rest)
+		if !unicode.IsLetter(r) {
 			return canonical
 		}
 	}
