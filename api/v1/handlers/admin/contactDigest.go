@@ -18,3 +18,16 @@ func TriggerContactDigest(c *fiber.Ctx) error {
 
 	return c.JSON(fiber.Map{"success": true})
 }
+
+// TriggerWeeklyContactDigest sender det ugentlige recap med det samme (i
+// stedet for at vente til søndag kl. 22). Kun for admins.
+func TriggerWeeklyContactDigest(c *fiber.Ctx) error {
+	caller := c.Locals("user").(*services.JWTPayload)
+	if !caller.IsAdmin {
+		return fiber.ErrForbidden
+	}
+
+	services.TriggerWeeklyContactDigestNow()
+
+	return c.JSON(fiber.Map{"success": true})
+}

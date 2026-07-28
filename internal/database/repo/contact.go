@@ -26,3 +26,11 @@ func (r *ContactsRepo) CountBetween(from, to time.Time) (int64, error) {
 	err := r.db.Model(&models.Contact{}).Where("created_at >= ? AND created_at < ?", from, to).Count(&count).Error
 	return count, err
 }
+
+// FindBetween henter alle kontakter oprettet i perioden [from, to), til brug
+// i digest-mails der skal vise fordelingen på opslag, ikke bare et antal.
+func (r *ContactsRepo) FindBetween(from, to time.Time) ([]*models.Contact, error) {
+	var contacts []*models.Contact
+	err := r.db.Where("created_at >= ? AND created_at < ?", from, to).Order("created_at asc").Find(&contacts).Error
+	return contacts, err
+}
