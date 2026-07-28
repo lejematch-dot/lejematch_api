@@ -9,9 +9,7 @@ import (
 	"github.com/gofiber/fiber/v2"
 )
 
-// defaultPageSize er delbart med 3, så gitteret (3 kolonner på computer) ikke
-// ender med en ufuldstændig sidste række.
-const defaultPageSize = 21
+const defaultPageSize = 22
 
 // splitCSV splitter en kommasepareret query-param til en liste, så flere
 // filterværdier kan vælges samtidig (f.eks. "landlordType=boligselskab,privat").
