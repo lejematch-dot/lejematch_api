@@ -132,8 +132,12 @@ type Contact struct {
 	NumPeople        int `gorm:"not null;default:1"`
 	RelationshipType ContactRelationshipType
 	// Ages har én alder per person i NumPeople (maks. 5 — dropdown-loftet).
-	Ages       IntSlice          `gorm:"type:jsonb"`
-	Employment ContactEmployment `gorm:"not null"`
+	Ages IntSlice `gorm:"type:jsonb"`
+	// Employment/HasPets er bevidst IKKE "not null" — ellers fejler
+	// AutoMigrate når kolonnen tilføjes til en tabel der allerede har rækker
+	// (Postgres kan ikke tilføje en NOT NULL-kolonne uden DEFAULT på en
+	// ikke-tom tabel). Krav om udfyldelse håndhæves i stedet i handleren.
+	Employment ContactEmployment
 	HasPets    bool
 }
 
