@@ -147,9 +147,13 @@ type Contact struct {
 }
 
 // NumPeopleSummary formaterer antal personer + evt. par/venner-label til
-// visning, fx "3 (Venner)" eller "1".
+// visning, fx "3 (Venner)" eller "5+". Dropdown-feltet i UI'en stopper ved
+// "5+", så 5 betyder reelt "5 eller flere".
 func (c Contact) NumPeopleSummary() string {
 	summary := strconv.Itoa(c.NumPeople)
+	if c.NumPeople >= 5 {
+		summary = "5+"
+	}
 	if label := c.RelationshipType.Label(); label != "" {
 		summary += " (" + label + ")"
 	}
