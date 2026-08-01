@@ -13,8 +13,12 @@ import (
 
 // ContactListingRequest er strukturen for kontakt request
 type ContactListingRequest struct {
-	Message     string `json:"message" binding:"required"`
-	SenderPhone string `json:"senderPhone"`
+	Message          string                         `json:"message" binding:"required"`
+	SenderPhone      string                         `json:"senderPhone"`
+	NumPeople        int                            `json:"numPeople"`
+	RelationshipType models.ContactRelationshipType `json:"relationshipType"`
+	AgeRange         models.ContactAgeRange         `json:"ageRange"`
+	Employment       models.ContactEmployment       `json:"employment"`
 }
 
 // ContactListing handler kontakt til udlejer. Kræver login, så beskeden kan
@@ -34,6 +38,18 @@ func ContactListing(c *fiber.Ctx) error {
 
 	if req.Message == "" {
 		return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{"error": "message is required"})
+	}
+	if req.NumPeople < 1 {
+		return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{"error": "numPeople skal være mindst 1"})
+	}
+	if !req.AgeRange.IsValid() {
+		return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{"error": "ugyldigt aldersinterval"})
+	}
+	if !req.Employment.IsValid() {
+		return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{"error": "ugyldig beskæftigelse"})
+	}
+	if !req.RelationshipType.IsValid() {
+		return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{"error": "ugyldig par/venner-værdi"})
 	}
 
 	listingsRepo := repo.NewListingsRepo()
@@ -63,12 +79,16 @@ func ContactListing(c *fiber.Ctx) error {
 
 	contactsRepo := repo.NewContactsRepo()
 	contact := &models.Contact{
-		SenderID:    caller.UserID,
-		RecipientID: listing.UserID,
-		TargetType:  models.ContactTargetListing,
-		TargetID:    listing.ID,
-		Message:     req.Message,
-		SenderPhone: req.SenderPhone,
+		SenderID:         caller.UserID,
+		RecipientID:      listing.UserID,
+		TargetType:       models.ContactTargetListing,
+		TargetID:         listing.ID,
+		Message:          req.Message,
+		SenderPhone:      req.SenderPhone,
+		NumPeople:        req.NumPeople,
+		RelationshipType: req.RelationshipType,
+		AgeRange:         req.AgeRange,
+		Employment:       req.Employment,
 	}
 	if err := contactsRepo.Create(contact); err != nil {
 		return fiber.ErrInternalServerError
@@ -76,7 +96,7 @@ func ContactListing(c *fiber.Ctx) error {
 
 	// Fejl i mailafsendelse må ikke forhindre at beskeden er gemt — den kan
 	// stadig ses i modtagerens "Beskeder"-oversigt.
-	_ = sendContactEmail(udlejer.Email, udlejer.FirstName, listing.Title, senderProfile.DisplayName, caller.Email, req.SenderPhone, req.Message)
+	_ = sendContactEmail(udlejer.Email, udlejer.FirstName, listing.Title, senderProfile.DisplayName, caller.Email, req.SenderPhone, req.Message, contact)
 
 	return c.Status(fiber.StatusOK).JSON(fiber.Map{
 		"success": true,
@@ -85,7 +105,7 @@ func ContactListing(c *fiber.Ctx) error {
 }
 
 // sendContactEmail sender email til udlejer via den delte mailer
-func sendContactEmail(recipientEmail, recipientName, listingTitle, senderName, senderEmail, senderPhone, message string) error {
+func sendContactEmail(recipientEmail, recipientName, listingTitle, senderName, senderEmail, senderPhone, message string, contact *models.Contact) error {
 	subject := "Ny interesse i din annonce: " + listingTitle
 
 	htmlContent := `
@@ -104,6 +124,13 @@ func sendContactEmail(recipientEmail, recipientName, listingTitle, senderName, s
 	if senderPhone != "" {
 		htmlContent += `<p><strong>Telefon:</strong> ` + senderPhone + `</p>`
 	}
+
+	htmlContent += `
+			<h3>Om interessenten:</h3>
+			<p><strong>Antal personer:</strong> ` + contact.NumPeopleSummary() + `</p>
+			<p><strong>Aldersinterval:</strong> ` + contact.AgeRange.Label() + `</p>
+			<p><strong>Beskæftigelse:</strong> ` + contact.Employment.Label() + `</p>
+	`
 
 	htmlContent += `
 			<h3>Besked:</h3>
