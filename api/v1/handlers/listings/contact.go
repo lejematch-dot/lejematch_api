@@ -19,6 +19,7 @@ type ContactListingRequest struct {
 	RelationshipType models.ContactRelationshipType `json:"relationshipType"`
 	Ages             []int                          `json:"ages"`
 	Employment       models.ContactEmployment       `json:"employment"`
+	EmploymentOther  string                         `json:"employmentOther"`
 	HasPets          bool                           `json:"hasPets"`
 }
 
@@ -58,6 +59,9 @@ func ContactListing(c *fiber.Ctx) error {
 	}
 	if !req.Employment.IsValid() {
 		return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{"error": "ugyldig beskæftigelse"})
+	}
+	if req.Employment == models.ContactEmploymentOther && req.EmploymentOther == "" {
+		return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{"error": "angiv hvilken beskæftigelse"})
 	}
 	if !req.RelationshipType.IsValid() {
 		return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{"error": "ugyldig par/venner-værdi"})
@@ -100,6 +104,7 @@ func ContactListing(c *fiber.Ctx) error {
 		RelationshipType: req.RelationshipType,
 		Ages:             models.IntSlice(req.Ages),
 		Employment:       req.Employment,
+		EmploymentOther:  req.EmploymentOther,
 		HasPets:          req.HasPets,
 	}
 	if err := contactsRepo.Create(contact); err != nil {
@@ -141,7 +146,7 @@ func sendContactEmail(recipientEmail, recipientName, listingTitle, senderName, s
 			<h3>Om interessenten:</h3>
 			<p><strong>Antal personer:</strong> ` + contact.NumPeopleSummary() + `</p>
 			<p><strong>Alder:</strong> ` + contact.AgesSummary() + `</p>
-			<p><strong>Beskæftigelse:</strong> ` + contact.Employment.Label() + `</p>
+			<p><strong>Beskæftigelse:</strong> ` + contact.EmploymentSummary() + `</p>
 			<p><strong>Kæledyr:</strong> ` + contact.PetsLabel() + `</p>
 	`
 

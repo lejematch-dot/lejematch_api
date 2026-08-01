@@ -138,7 +138,10 @@ type Contact struct {
 	// (Postgres kan ikke tilføje en NOT NULL-kolonne uden DEFAULT på en
 	// ikke-tom tabel). Krav om udfyldelse håndhæves i stedet i handleren.
 	Employment ContactEmployment
-	HasPets    bool
+	// EmploymentOther er den frie tekst afsenderen angiver, når Employment
+	// er "andet" — ellers tom.
+	EmploymentOther string
+	HasPets         bool
 }
 
 // NumPeopleSummary formaterer antal personer + evt. par/venner-label til
@@ -173,6 +176,15 @@ func (c Contact) AgesSummary() string {
 	}
 	summary += " og " + parts[len(parts)-1]
 	return summary
+}
+
+// EmploymentSummary viser den frie tekst i stedet for det uinformative
+// "Andet", når afsenderen har angivet en.
+func (c Contact) EmploymentSummary() string {
+	if c.Employment == ContactEmploymentOther && c.EmploymentOther != "" {
+		return c.EmploymentOther
+	}
+	return c.Employment.Label()
 }
 
 func (c Contact) PetsLabel() string {
