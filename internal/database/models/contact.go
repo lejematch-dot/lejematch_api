@@ -24,13 +24,14 @@ type ContactRelationshipType string
 const (
 	ContactRelationshipCouple  ContactRelationshipType = "par"
 	ContactRelationshipFriends ContactRelationshipType = "venner"
+	ContactRelationshipFamily  ContactRelationshipType = "familie"
 	ContactRelationshipOther   ContactRelationshipType = "andet"
 )
 
 // IsValid tillader også tom streng, da feltet kun er relevant når NumPeople > 1.
 func (r ContactRelationshipType) IsValid() bool {
 	switch r {
-	case "", ContactRelationshipCouple, ContactRelationshipFriends, ContactRelationshipOther:
+	case "", ContactRelationshipCouple, ContactRelationshipFriends, ContactRelationshipFamily, ContactRelationshipOther:
 		return true
 	default:
 		return false
@@ -43,6 +44,8 @@ func (r ContactRelationshipType) Label() string {
 		return "Par"
 	case ContactRelationshipFriends:
 		return "Venner"
+	case ContactRelationshipFamily:
+		return "Familie"
 	case ContactRelationshipOther:
 		return "Andet"
 	default:
