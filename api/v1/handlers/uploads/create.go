@@ -1,16 +1,27 @@
 package uploads
 
 import (
+	"bytes"
+	"errors"
+	"image/jpeg"
+	"image/png"
 	"log"
+	"mime/multipart"
 	"os"
 	"path/filepath"
 	"strings"
 
+	"github.com/disintegration/imaging"
 	"github.com/gofiber/fiber/v2"
 	"github.com/google/uuid"
 )
 
 const maxUploadSize = 25 * 1024 * 1024 // 25MB — moderne telefonkameraer producerer ofte billeder på 5-12MB
+
+// maxImageDimension er det største vi nogensinde viser et billede i (lightbox
+// på boligopslag) — telefonfotos er ofte 3000-4000px, hvilket er unødvendigt
+// stort og gør sider langsommere at indlæse uden nogen synlig kvalitetsgevinst.
+const maxImageDimension = 1920
 
 // allowedExtensions bruges som fallback hvis browseren ikke sender en
 // genkendelig Content-Type. Filnavne fra telefoner (f.eks. iPhones
@@ -62,12 +73,68 @@ func CreateUpload(c *fiber.Ctx) error {
 	}
 
 	filename := uuid.NewString() + ext
-	if err := c.SaveFile(file, filepath.Join("./uploads", filename)); err != nil {
-		log.Printf("upload: SaveFile error for %q: %v", file.Filename, err)
-		return fiber.ErrInternalServerError
+	dstPath := filepath.Join("./uploads", filename)
+
+	resized := false
+	if ext == ".jpg" || ext == ".jpeg" || ext == ".png" {
+		if err := resizeAndSave(file, dstPath, ext); err != nil {
+			log.Printf("upload: resize failed for %q, falling back to original: %v", file.Filename, err)
+		} else {
+			resized = true
+		}
+	}
+	if !resized {
+		if err := c.SaveFile(file, dstPath); err != nil {
+			log.Printf("upload: SaveFile error for %q: %v", file.Filename, err)
+			return fiber.ErrInternalServerError
+		}
 	}
 
 	return c.Status(fiber.StatusCreated).JSON(fiber.Map{
 		"url": "/uploads/" + filename,
 	})
+}
+
+var errResizeNotSmaller = errors.New("resized image not smaller than original")
+
+// resizeAndSave skalerer billedet ned hvis det er større end
+// maxImageDimension i bredde eller højde, og gemmer det på dstPath.
+// AutoOrientation retter telefonfotos der ellers ville blive gemt på siden
+// (EXIF-rotation går tabt når pixels skrives ud igen).
+//
+// Nogle billeder er allerede komprimeret hårdt af afsenderen og bliver ikke
+// mindre af at blive genkodet — i så fald returneres errResizeNotSmaller, så
+// den oprindelige fil bruges i stedet (kalderen falder tilbage til den).
+func resizeAndSave(fh *multipart.FileHeader, dstPath, ext string) error {
+	src, err := fh.Open()
+	if err != nil {
+		return err
+	}
+	defer src.Close()
+
+	img, err := imaging.Decode(src, imaging.AutoOrientation(true))
+	if err != nil {
+		return err
+	}
+
+	bounds := img.Bounds()
+	if bounds.Dx() > maxImageDimension || bounds.Dy() > maxImageDimension {
+		img = imaging.Fit(img, maxImageDimension, maxImageDimension, imaging.Lanczos)
+	}
+
+	var buf bytes.Buffer
+	if ext == ".png" {
+		err = png.Encode(&buf, img)
+	} else {
+		err = jpeg.Encode(&buf, img, &jpeg.Options{Quality: 82})
+	}
+	if err != nil {
+		return err
+	}
+
+	if int64(buf.Len()) >= fh.Size {
+		return errResizeNotSmaller
+	}
+
+	return os.WriteFile(dstPath, buf.Bytes(), 0644)
 }

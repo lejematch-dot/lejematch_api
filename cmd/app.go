@@ -43,7 +43,11 @@ func Run() error {
 		return c.JSON(fiber.Map{"status": "ok"})
 	})
 
-	app.Static("/uploads", "./uploads")
+	// MaxAge: 1 år — filnavne er UUID-baserede og genbruges aldrig, så
+	// billeder kan caches permanent i browseren.
+	app.Static("/uploads", "./uploads", fiber.Static{
+		MaxAge: 31536000,
+	})
 
 	// Initialize Database
 	database.InitDB()
