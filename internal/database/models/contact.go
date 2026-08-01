@@ -1,6 +1,9 @@
 package models
 
 import (
+	"database/sql/driver"
+	"encoding/json"
+	"errors"
 	"strconv"
 
 	"gorm.io/gorm"
@@ -47,39 +50,6 @@ func (r ContactRelationshipType) Label() string {
 	}
 }
 
-// ContactAgeRange er afsenderens aldersinterval, oplyst af afsenderen selv
-// ved kontakt — bruges til at give modtageren et hurtigt overblik, ikke til
-// automatisk fravælgelse (se citynorm-lignende overvejelser i CLAUDE.md).
-type ContactAgeRange string
-
-const (
-	ContactAgeUnder25 ContactAgeRange = "under25"
-	ContactAge26To35  ContactAgeRange = "26-35"
-	ContactAge35Plus  ContactAgeRange = "35+"
-)
-
-func (a ContactAgeRange) IsValid() bool {
-	switch a {
-	case ContactAgeUnder25, ContactAge26To35, ContactAge35Plus:
-		return true
-	default:
-		return false
-	}
-}
-
-func (a ContactAgeRange) Label() string {
-	switch a {
-	case ContactAgeUnder25:
-		return "Under 25"
-	case ContactAge26To35:
-		return "26-35"
-	case ContactAge35Plus:
-		return "35+"
-	default:
-		return ""
-	}
-}
-
 // ContactEmployment er afsenderens beskæftigelsessituation, oplyst af
 // afsenderen selv ved kontakt.
 type ContactEmployment string
@@ -115,20 +85,36 @@ func (e ContactEmployment) Label() string {
 	}
 }
 
+// IntSlice gemmes som jsonb — bruges til Ages, da antallet af aldre varierer
+// med NumPeople.
+type IntSlice []int
+
+func (s IntSlice) Value() (driver.Value, error) {
+	return json.Marshal(s)
+}
+
+func (s *IntSlice) Scan(value interface{}) error {
+	bytes, ok := value.([]byte)
+	if !ok {
+		return errors.New("failed to scan IntSlice")
+	}
+	return json.Unmarshal(bytes, s)
+}
+
 // Contact er en besked sendt fra én bruger (Sender) til en anden (Recipient)
 // om et konkret opslag. Gemmes i databasen ud over at blive sendt som e-mail,
 // så modtageren kan se historikken i sit dashboard.
 //
-// NumPeople/RelationshipType/AgeRange/Employment oplyses af afsenderen selv
-// og vises til modtageren som info i beskedlisten — bevidst IKKE eksponeret
-// som filter/sortering i UI'en, da det ellers ville gøre LejeMatch til et
-// aktivt værktøj til systematisk fravælgelse af lejere fremfor blot at
-// understøtte modtagerens egen, individuelle vurdering.
+// NumPeople/RelationshipType/Ages/Employment/HasPets oplyses af afsenderen
+// selv og vises til modtageren som info i beskedlisten — bevidst IKKE
+// eksponeret som filter/sortering i UI'en, da det ellers ville gøre
+// LejeMatch til et aktivt værktøj til systematisk fravælgelse af lejere
+// fremfor blot at understøtte modtagerens egen, individuelle vurdering.
 //
 // Kun udfyldt for TargetType=listing (en lejer der kontakter en udlejer om
 // deres bolig) — det er lejeren der beskriver sig selv der. For
 // TargetType=seeker (en udlejer der kontakter en lejers "søger bolig"-opslag)
-// giver felterne ikke mening for afsenderen og står tomme/0.
+// giver felterne ikke mening for afsenderen og står tomme/0/false.
 type Contact struct {
 	gorm.Model
 
@@ -142,8 +128,10 @@ type Contact struct {
 	SenderPhone      string
 	NumPeople        int `gorm:"not null;default:1"`
 	RelationshipType ContactRelationshipType
-	AgeRange         ContactAgeRange   `gorm:"not null"`
-	Employment       ContactEmployment `gorm:"not null"`
+	// Ages har én alder per person i NumPeople (maks. 5 — dropdown-loftet).
+	Ages       IntSlice          `gorm:"type:jsonb"`
+	Employment ContactEmployment `gorm:"not null"`
+	HasPets    bool
 }
 
 // NumPeopleSummary formaterer antal personer + evt. par/venner-label til
@@ -158,4 +146,31 @@ func (c Contact) NumPeopleSummary() string {
 		summary += " (" + label + ")"
 	}
 	return summary
+}
+
+// AgesSummary formaterer aldrene til visning, fx "28" eller "28, 31 og 34".
+func (c Contact) AgesSummary() string {
+	if len(c.Ages) == 0 {
+		return ""
+	}
+	if len(c.Ages) == 1 {
+		return strconv.Itoa(c.Ages[0])
+	}
+	parts := make([]string, len(c.Ages))
+	for i, age := range c.Ages {
+		parts[i] = strconv.Itoa(age)
+	}
+	summary := parts[0]
+	for i := 1; i < len(parts)-1; i++ {
+		summary += ", " + parts[i]
+	}
+	summary += " og " + parts[len(parts)-1]
+	return summary
+}
+
+func (c Contact) PetsLabel() string {
+	if c.HasPets {
+		return "Ja"
+	}
+	return "Nej"
 }

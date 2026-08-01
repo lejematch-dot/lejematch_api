@@ -17,8 +17,9 @@ type ContactListingRequest struct {
 	SenderPhone      string                         `json:"senderPhone"`
 	NumPeople        int                            `json:"numPeople"`
 	RelationshipType models.ContactRelationshipType `json:"relationshipType"`
-	AgeRange         models.ContactAgeRange         `json:"ageRange"`
+	Ages             []int                          `json:"ages"`
 	Employment       models.ContactEmployment       `json:"employment"`
+	HasPets          bool                           `json:"hasPets"`
 }
 
 // ContactListing handler kontakt til udlejer. Kræver login, så beskeden kan
@@ -42,8 +43,18 @@ func ContactListing(c *fiber.Ctx) error {
 	if req.NumPeople < 1 {
 		return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{"error": "numPeople skal være mindst 1"})
 	}
-	if !req.AgeRange.IsValid() {
-		return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{"error": "ugyldigt aldersinterval"})
+	// Der skal være én alder pr. person, op til dropdown-loftet på 5 ("5+").
+	wantAges := req.NumPeople
+	if wantAges > 5 {
+		wantAges = 5
+	}
+	if len(req.Ages) != wantAges {
+		return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{"error": "angiv en alder pr. person"})
+	}
+	for _, age := range req.Ages {
+		if age < 1 || age > 120 {
+			return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{"error": "ugyldig alder"})
+		}
 	}
 	if !req.Employment.IsValid() {
 		return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{"error": "ugyldig beskæftigelse"})
@@ -87,8 +98,9 @@ func ContactListing(c *fiber.Ctx) error {
 		SenderPhone:      req.SenderPhone,
 		NumPeople:        req.NumPeople,
 		RelationshipType: req.RelationshipType,
-		AgeRange:         req.AgeRange,
+		Ages:             models.IntSlice(req.Ages),
 		Employment:       req.Employment,
+		HasPets:          req.HasPets,
 	}
 	if err := contactsRepo.Create(contact); err != nil {
 		return fiber.ErrInternalServerError
@@ -128,8 +140,9 @@ func sendContactEmail(recipientEmail, recipientName, listingTitle, senderName, s
 	htmlContent += `
 			<h3>Om interessenten:</h3>
 			<p><strong>Antal personer:</strong> ` + contact.NumPeopleSummary() + `</p>
-			<p><strong>Aldersinterval:</strong> ` + contact.AgeRange.Label() + `</p>
+			<p><strong>Alder:</strong> ` + contact.AgesSummary() + `</p>
 			<p><strong>Beskæftigelse:</strong> ` + contact.Employment.Label() + `</p>
+			<p><strong>Kæledyr:</strong> ` + contact.PetsLabel() + `</p>
 	`
 
 	htmlContent += `
