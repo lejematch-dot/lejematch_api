@@ -2,6 +2,7 @@ FROM golang:1.24-alpine AS builder
 WORKDIR /app
 COPY go.mod go.sum ./
 RUN go mod download
+ARG CACHEBUST=1
 COPY . .
 RUN go build -o server .
 
