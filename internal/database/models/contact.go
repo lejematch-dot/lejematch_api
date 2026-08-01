@@ -120,10 +120,15 @@ func (e ContactEmployment) Label() string {
 // så modtageren kan se historikken i sit dashboard.
 //
 // NumPeople/RelationshipType/AgeRange/Employment oplyses af afsenderen selv
-// ved kontakt, og vises til modtageren som info i beskedlisten — bevidst IKKE
-// eksponeret som filter/sortering i UI'en, da det ellers ville gøre
-// LejeMatch til et aktivt værktøj til systematisk fravælgelse af lejere
-// fremfor blot at understøtte modtagerens egen, individuelle vurdering.
+// og vises til modtageren som info i beskedlisten — bevidst IKKE eksponeret
+// som filter/sortering i UI'en, da det ellers ville gøre LejeMatch til et
+// aktivt værktøj til systematisk fravælgelse af lejere fremfor blot at
+// understøtte modtagerens egen, individuelle vurdering.
+//
+// Kun udfyldt for TargetType=listing (en lejer der kontakter en udlejer om
+// deres bolig) — det er lejeren der beskriver sig selv der. For
+// TargetType=seeker (en udlejer der kontakter en lejers "søger bolig"-opslag)
+// giver felterne ikke mening for afsenderen og står tomme/0.
 type Contact struct {
 	gorm.Model
 
