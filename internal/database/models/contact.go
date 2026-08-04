@@ -17,6 +17,27 @@ const (
 	ContactTargetSeeker  ContactTargetType = "seeker"
 )
 
+// ContactCategory er modtagerens egen private markering af beskeden (rød/gul/
+// grøn) — udelukkende til personlig organisering, sættes kun af modtageren
+// selv og vises aldrig til afsenderen eller andre.
+type ContactCategory string
+
+const (
+	ContactCategoryRed    ContactCategory = "red"
+	ContactCategoryYellow ContactCategory = "yellow"
+	ContactCategoryGreen  ContactCategory = "green"
+)
+
+// IsValid tillader også tom streng, som betyder "ikke markeret".
+func (cat ContactCategory) IsValid() bool {
+	switch cat {
+	case "", ContactCategoryRed, ContactCategoryYellow, ContactCategoryGreen:
+		return true
+	default:
+		return false
+	}
+}
+
 // ContactRelationshipType angiver om afsenderen er en del af et par eller en
 // venneflok — kun relevant når NumPeople > 1, ellers tom streng.
 type ContactRelationshipType string
@@ -142,6 +163,7 @@ type Contact struct {
 	// er "andet" — ellers tom.
 	EmploymentOther string
 	HasPets         bool
+	Category        ContactCategory
 }
 
 // NumPeopleSummary formaterer antal personer + evt. par/venner-label til
