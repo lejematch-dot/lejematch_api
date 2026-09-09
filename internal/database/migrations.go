@@ -54,6 +54,12 @@ func Migrate() {
 		return
 	}
 
+	err = DB.AutoMigrate(&models.ContactReply{})
+	if err != nil {
+		println(err)
+		return
+	}
+
 	backfillSeekerCityDisplay()
 	normalizeCities()
 }
