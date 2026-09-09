@@ -14,4 +14,5 @@ func SetupAdminRoutes(app fiber.Router) {
 	admin.Get("/stats", handler.GetStats)
 	admin.Post("/newsletter/send", handler.SendNewsletterHandler)
 	admin.Post("/newsletter/invite-existing", handler.SendNewsletterInviteHandler)
+	admin.Post("/stale-listings/trigger", handler.TriggerStaleListingReminders)
 }

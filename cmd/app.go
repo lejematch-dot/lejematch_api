@@ -60,6 +60,7 @@ func Run() error {
 	database.Seed()
 
 	services.StartDailyContactDigest()
+	services.StartStaleListingReminders()
 
 	//Setup routes
 	routes.SetupRoutes(app)

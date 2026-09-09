@@ -1,6 +1,8 @@
 package models
 
 import (
+	"time"
+
 	"gorm.io/gorm"
 )
 
@@ -27,4 +29,10 @@ type SeekerListing struct {
 	FurnishedPreference string `gorm:"index"` // "furnished" | "unfurnished" | "any"
 	RentalPeriod        string `gorm:"index"` // ønsket lejeperiode: "unlimited" | "limited"
 	RentalPeriodDetails string // fri tekst, kun relevant når RentalPeriod = "limited"
+
+	// LastReminderSentAt — hvornår brugeren sidst fik en "er dit opslag
+	// stadig aktuelt?"-mail. Nullable — se citynorm-lignende migrations-
+	// overvejelser: skal IKKE have not-null, ellers fejler AutoMigrate på en
+	// tabel der allerede har rækker.
+	LastReminderSentAt *time.Time
 }

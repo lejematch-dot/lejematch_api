@@ -81,4 +81,9 @@ type Listing struct {
 	Facilities          StringSlice `gorm:"type:jsonb"`
 	TargetAudience      string
 	RoommatesWanted     *int // antal nye roomies søgt, kun relevant når ListingKind = "room"
+
+	// LastReminderSentAt — hvornår brugeren sidst fik en "er dit opslag
+	// stadig aktuelt?"-mail. Nullable af samme grund som andre efterfølgende
+	// tilføjede felter i denne kodebase — se citynorm-migrationslektien.
+	LastReminderSentAt *time.Time
 }

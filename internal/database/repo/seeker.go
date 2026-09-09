@@ -3,6 +3,7 @@ package repo
 import (
 	"Lejematch/internal/database"
 	"Lejematch/internal/database/models"
+	"time"
 )
 
 type SeekersRepo struct {
@@ -61,6 +62,18 @@ func (r *SeekersRepo) FindFiltered(f SeekerFilters) ([]*models.SeekerListing, in
 	var seekers []*models.SeekerListing
 	err := query.Order("created_at DESC").Offset(offset).Limit(f.PageSize).Find(&seekers).Error
 	return seekers, total, err
+}
+
+// FindStaleActive henter aktive lejer-opslag der enten aldrig har fået en
+// "stadig aktuelt?"-påmindelse, eller sidst fik en før threshold.
+func (r *SeekersRepo) FindStaleActive(threshold time.Time) ([]*models.SeekerListing, error) {
+	var seekers []*models.SeekerListing
+	err := r.db.
+		Where("status = ?", models.ListingStatusActive).
+		Where("created_at <= ?", threshold).
+		Where("last_reminder_sent_at IS NULL OR last_reminder_sent_at <= ?", threshold).
+		Find(&seekers).Error
+	return seekers, err
 }
 
 func (r *SeekersRepo) FindByUserID(userID uint) ([]*models.SeekerListing, error) {

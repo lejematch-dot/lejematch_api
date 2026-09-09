@@ -3,6 +3,7 @@ package repo
 import (
 	"Lejematch/internal/database"
 	"Lejematch/internal/database/models"
+	"time"
 )
 
 type ListingsRepo struct {
@@ -73,6 +74,19 @@ func (r *ListingsRepo) FindFiltered(f ListingFilters) ([]*models.Listing, int64,
 	var listings []*models.Listing
 	err := query.Order("(promoted_until > NOW()) DESC, promoted_until DESC, created_at DESC").Offset(offset).Limit(f.PageSize).Find(&listings).Error
 	return listings, total, err
+}
+
+// FindStaleActive henter aktive opslag der enten aldrig har fået en
+// "stadig aktuelt?"-påmindelse, eller sidst fik en før threshold — bruges
+// til den månedlige påmindelses-mail.
+func (r *ListingsRepo) FindStaleActive(threshold time.Time) ([]*models.Listing, error) {
+	var listings []*models.Listing
+	err := r.db.
+		Where("status = ?", models.ListingStatusActive).
+		Where("created_at <= ?", threshold).
+		Where("last_reminder_sent_at IS NULL OR last_reminder_sent_at <= ?", threshold).
+		Find(&listings).Error
+	return listings, err
 }
 
 func (r *ListingsRepo) FindByUserID(userID uint) ([]*models.Listing, error) {
