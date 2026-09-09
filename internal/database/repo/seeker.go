@@ -15,8 +15,11 @@ func NewSeekersRepo() *SeekersRepo {
 }
 
 type SeekerFilters struct {
-	City      string
-	MaxBudget int
+	City string
+	// MinBudget filtrerer på lejerens eget MaxBudget (det de max vil betale)
+	// — vi vil vise lejere hvis budget rækker til MINDST denne værdi, så en
+	// udlejer kan finde lejere der har råd til deres pris.
+	MinBudget int
 	// RoomType, FurnishedPreference og RentalPeriod er lister, så flere
 	// værdier kan vælges samtidig (f.eks. både "private" og "shared").
 	RoomType            []string
@@ -35,8 +38,8 @@ func (r *SeekersRepo) FindFiltered(f SeekerFilters) ([]*models.SeekerListing, in
 	if f.City != "" {
 		query = query.Where("city = ?", f.City)
 	}
-	if f.MaxBudget > 0 {
-		query = query.Where("max_budget <= ?", f.MaxBudget)
+	if f.MinBudget > 0 {
+		query = query.Where("max_budget >= ?", f.MinBudget)
 	}
 	if len(f.RoomType) > 0 {
 		query = query.Where("room_type IN ?", f.RoomType)

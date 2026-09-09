@@ -33,11 +33,11 @@ func ListSeekers(c *fiber.Ctx) error {
 		page = 1
 	}
 
-	maxBudget, _ := strconv.Atoi(c.Query("maxBudget", "0"))
+	minBudget, _ := strconv.Atoi(c.Query("minBudget", "0"))
 
 	filters := repo.SeekerFilters{
 		City:                c.Query("city"),
-		MaxBudget:           maxBudget,
+		MinBudget:           minBudget,
 		RoomType:            splitCSV(c.Query("roomType")),
 		FurnishedPreference: splitCSV(c.Query("furnishedPreference")),
 		RentalPeriod:        splitCSV(c.Query("rentalPeriod")),
