@@ -11,4 +11,6 @@ func SetupContactRoutes(app fiber.Router) {
 	protected := app.Group("/contacts", auth.JWTmiddleware)
 	protected.Get("/", handler.ListContacts)
 	protected.Patch("/:id/category", handler.UpdateCategory)
+	protected.Get("/:id/replies", handler.ListReplies)
+	protected.Post("/:id/replies", handler.CreateReply)
 }

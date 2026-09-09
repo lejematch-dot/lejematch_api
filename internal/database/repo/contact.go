@@ -20,6 +20,15 @@ func (r *ContactsRepo) FindByRecipient(userID uint) ([]*models.Contact, error) {
 	return contacts, err
 }
 
+// FindByParticipant henter alle tråde, brugeren er en del af — enten som den
+// oprindelige afsender eller modtager — så begge parter kan følge samtalen,
+// ikke kun den der først blev kontaktet.
+func (r *ContactsRepo) FindByParticipant(userID uint) ([]*models.Contact, error) {
+	var contacts []*models.Contact
+	err := r.db.Where("sender_id = ? OR recipient_id = ?", userID, userID).Order("created_at desc").Find(&contacts).Error
+	return contacts, err
+}
+
 // CountBetween tæller antal kontakter oprettet i perioden [from, to).
 func (r *ContactsRepo) CountBetween(from, to time.Time) (int64, error) {
 	var count int64

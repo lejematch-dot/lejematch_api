@@ -215,3 +215,18 @@ func (c Contact) PetsLabel() string {
 	}
 	return "Nej"
 }
+
+// ContactReply er et svar i den trådede samtale, der hører til en Contact.
+// Den oprindelige Contact er trådens "rod" — ContactReply har bevidst ingen
+// af Contact's demografi-felter (Ages/Employment/HasPets osv.), da de kun
+// giver mening for lejerens allerførste henvendelse, ikke efterfølgende svar
+// fra begge parter.
+type ContactReply struct {
+	gorm.Model
+
+	ContactID uint    `gorm:"not null;index"`
+	Contact   Contact `gorm:"foreignKey:ContactID;constraint:OnDelete:CASCADE"`
+	SenderID  uint    `gorm:"not null;index"`
+	Sender    User    `gorm:"foreignKey:SenderID;constraint:OnDelete:CASCADE"`
+	Message   string  `gorm:"not null"`
+}

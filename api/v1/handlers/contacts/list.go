@@ -11,7 +11,7 @@ func ListContacts(c *fiber.Ctx) error {
 	caller := c.Locals("user").(*services.JWTPayload)
 
 	contactsRepo := repo.NewContactsRepo()
-	contacts, err := contactsRepo.FindByRecipient(caller.UserID)
+	contacts, err := contactsRepo.FindByParticipant(caller.UserID)
 	if err != nil {
 		return fiber.ErrInternalServerError
 	}
